@@ -27,6 +27,8 @@ export interface RemoteJob {
   lastError?: string;
   /** stream-job ids currently counted for this job (drives the "Importing… N left" counter) */
   pending: Set<string>;
+  /** track indexes that already reported track/failed, so a retried HTTP request can't count a track twice */
+  handled: Set<number>;
   server: BunServer;
 }
 
@@ -166,6 +168,7 @@ export function createYtRemote(deps?: Partial<RemoteDeps>) {
         imported: 0,
         failed: 0,
         pending: new Set(),
+        handled: new Set(),
         server,
       };
       jobs.set(job.id, job);
@@ -219,6 +222,8 @@ export function createYtRemote(deps?: Partial<RemoteDeps>) {
           return { ok: true };
         }
         case "track": {
+          if (job.handled.has(ev.index)) return { ok: true }; // duplicate delivery (worker retried the request)
+          job.handled.add(ev.index);
           const room = globalManager.getRoom(job.roomId);
           if (room) {
             const sources = room.addAudioSource({ url: ev.publicUrl });
@@ -234,6 +239,8 @@ export function createYtRemote(deps?: Partial<RemoteDeps>) {
           return { ok: true };
         }
         case "failed": {
+          if (job.handled.has(ev.index)) return { ok: true };
+          job.handled.add(ev.index);
           job.failed++;
           if (ev.reason) job.lastError = ev.reason;
           clearPending(job, `yt-${job.id}-${ev.index}`);

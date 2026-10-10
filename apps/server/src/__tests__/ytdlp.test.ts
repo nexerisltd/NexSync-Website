@@ -18,6 +18,17 @@ describe("parseYoutubeUrl", () => {
     expect(parseYoutubeUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLabcdefghij123")?.kind).toBe("playlist");
   });
 
+  it("imports just the song when a song link carries an auto-generated radio/mix list", () => {
+    expect(parseYoutubeUrl("https://music.youtube.com/watch?v=dQw4w9WgXcQ&list=RDAMVMdQw4w9WgXcQ&si=abc")).toEqual({
+      kind: "video",
+      id: "dQw4w9WgXcQ",
+      url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    });
+    // a real playlist next to a video id is still a playlist, and /playlist?list=RD... (curated) stays a playlist
+    expect(parseYoutubeUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLabcdefghij123")?.kind).toBe("playlist");
+    expect(parseYoutubeUrl("https://music.youtube.com/playlist?list=RDCLAK5uy_abcdefghijk")?.kind).toBe("playlist");
+  });
+
   it("accepts single videos", () => {
     expect(parseYoutubeUrl("https://youtu.be/dQw4w9WgXcQ?t=3")?.url).toBe(
       "https://www.youtube.com/watch?v=dQw4w9WgXcQ"

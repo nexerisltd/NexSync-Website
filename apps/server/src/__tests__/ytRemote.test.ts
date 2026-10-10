@@ -13,7 +13,7 @@ let roomCounter = 0;
 const broadcasts: WSBroadcastType[] = [];
 let launches = 0;
 let clock = 1_000_000;
-const last = <T,>(xs: T[]) => xs[xs.length - 1];
+const last = <T>(xs: T[]) => xs[xs.length - 1];
 
 const make = () =>
   createYtRemote({
@@ -41,13 +41,19 @@ describe("remote YouTube import", () => {
 
   it("adds tracks as they are reported and clears the counter", async () => {
     const yt = make();
-    const job = yt.enqueue({ roomId: ROOM_ID, url: "https://www.youtube.com/playlist?list=PLtest12345", server: createMockServer() });
+    const job = yt.enqueue({
+      roomId: ROOM_ID,
+      url: "https://www.youtube.com/playlist?list=PLtest12345",
+      server: createMockServer(),
+    });
     expect(job).not.toBeNull();
     expect(last(counts())).toBe(1); // "Importing…" shows immediately
     expect(launches).toBe(1); // worker was offline -> launched
 
     // second import for the same room is refused while this one is active
-    expect(yt.enqueue({ roomId: ROOM_ID, url: "https://www.youtube.com/watch?v=abcdefghijk", server: createMockServer() })).toBeNull();
+    expect(
+      yt.enqueue({ roomId: ROOM_ID, url: "https://www.youtube.com/watch?v=abcdefghijk", server: createMockServer() })
+    ).toBeNull();
 
     const claimed = await yt.claimNext(50);
     expect(claimed?.id).toBe(job!.id);
@@ -68,11 +74,37 @@ describe("remote YouTube import", () => {
     expect(sourceUrls()).toHaveLength(2);
     expect(last(counts())).toBe(0);
     expect(globalManager.getRoom(ROOM_ID)?.getActiveStreamJobCount()).toBe(0);
-    const summary = broadcasts.flatMap((m) => (m.type === "STREAM_JOB_UPDATE" && m.importSummary ? [m.importSummary] : []));
+    const summary = broadcasts.flatMap((m) =>
+      m.type === "STREAM_JOB_UPDATE" && m.importSummary ? [m.importSummary] : []
+    );
     expect(summary).toEqual([{ imported: 2, failed: 1, reason: "Video unavailable" }]);
 
     // room is free for a new import afterwards
-    expect(yt.enqueue({ roomId: ROOM_ID, url: "https://www.youtube.com/watch?v=abcdefghijk", server: createMockServer() })).not.toBeNull();
+    expect(
+      yt.enqueue({ roomId: ROOM_ID, url: "https://www.youtube.com/watch?v=abcdefghijk", server: createMockServer() })
+    ).not.toBeNull();
+  });
+
+  it("ignores a track/failed event that is delivered twice (worker retried the request)", async () => {
+    const yt = make();
+    const job = yt.enqueue({
+      roomId: ROOM_ID,
+      url: "https://www.youtube.com/playlist?list=PLtest12345",
+      server: createMockServer(),
+    });
+    await yt.claimNext(50);
+    yt.handleEvent(job!.id, { type: "listed", total: 2 });
+
+    const url = `${process.env.S3_PUBLIC_URL ?? "https://cdn.test"}/room-${ROOM_ID}/one.m4a`;
+    yt.handleEvent(job!.id, { type: "track", index: 0, publicUrl: url });
+    yt.handleEvent(job!.id, { type: "track", index: 0, publicUrl: url }); // duplicate
+    yt.handleEvent(job!.id, { type: "failed", index: 1, reason: "boom" });
+    yt.handleEvent(job!.id, { type: "failed", index: 1, reason: "boom" }); // duplicate
+
+    expect(sourceUrls()).toHaveLength(1);
+    expect(yt.getJob(job!.id)?.imported).toBe(1);
+    expect(yt.getJob(job!.id)?.failed).toBe(1);
+    expect(last(counts())).toBe(0);
   });
 
   it("does not launch another worker while one is polling", async () => {
@@ -84,9 +116,15 @@ describe("remote YouTube import", () => {
 
   it("reports an unreadable playlist as a failed import", () => {
     const yt = make();
-    const job = yt.enqueue({ roomId: ROOM_ID, url: "https://www.youtube.com/playlist?list=PLprivate123", server: createMockServer() })!;
+    const job = yt.enqueue({
+      roomId: ROOM_ID,
+      url: "https://www.youtube.com/playlist?list=PLprivate123",
+      server: createMockServer(),
+    })!;
     yt.handleEvent(job.id, { type: "done", reason: "Could not read that playlist" });
-    const summary = broadcasts.flatMap((m) => (m.type === "STREAM_JOB_UPDATE" && m.importSummary ? [m.importSummary] : []));
+    const summary = broadcasts.flatMap((m) =>
+      m.type === "STREAM_JOB_UPDATE" && m.importSummary ? [m.importSummary] : []
+    );
     expect(summary[0]).toEqual({ imported: 0, failed: 1, reason: "Could not read that playlist" });
     expect(last(counts())).toBe(0);
   });
@@ -97,7 +135,9 @@ describe("remote YouTube import", () => {
     expect(checkWorkerAuth(new Request("http://x/worker/next"))).toBe("not_configured");
     process.env.YT_WORKER_SECRET = "s3cret-value";
     expect(checkWorkerAuth(new Request("http://x", { headers: { authorization: "Bearer s3cret-value" } }))).toBe("ok");
-    expect(checkWorkerAuth(new Request("http://x", { headers: { authorization: "Bearer wrong-value!" } }))).toBe("unauthorized");
+    expect(checkWorkerAuth(new Request("http://x", { headers: { authorization: "Bearer wrong-value!" } }))).toBe(
+      "unauthorized"
+    );
     if (old === undefined) delete process.env.YT_WORKER_SECRET;
     else process.env.YT_WORKER_SECRET = old;
   });

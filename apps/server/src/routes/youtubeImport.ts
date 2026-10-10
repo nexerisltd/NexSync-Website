@@ -181,15 +181,22 @@ async function importEntries({
   let lastError: string | undefined;
   let imported = 0;
 
-  const withRetry = async <T,>(label: string, entry: PlaylistEntry, fn: () => Promise<T>): Promise<T | null> => {
+  const withRetry = async <T>(
+    label: string,
+    entry: PlaylistEntry,
+    fn: (attempt: number) => Promise<T>
+  ): Promise<T | null> => {
     // One retry per stage: free hosts + YouTube throttling fail transiently.
     for (let attempt = 0; attempt < 2; attempt++) {
       if (!globalManager.getRoom(roomId)) return null; // room closed — stop early
       try {
-        return await fn();
+        return await fn(attempt);
       } catch (error) {
         lastError = error instanceof Error ? error.message : String(error);
-        console.error(`YouTube import ${label} failed for "${entry.title}" (${entry.id}), attempt ${attempt + 1}:`, error);
+        console.error(
+          `YouTube import ${label} failed for "${entry.title}" (${entry.id}), attempt ${attempt + 1}:`,
+          error
+        );
       }
     }
     return null;
@@ -205,11 +212,15 @@ async function importEntries({
         if (!downloaded) return;
         const file = downloaded;
 
-        const url = await withRetry("upload", entry, () =>
+        // Name fallback: untitled/non-Latin titles become "YouTube <id>"; if the storage still rejects the key
+        // (400 InvalidKey on some providers), the second attempt uses that minimal name.
+        const fallbackName = `YouTube ${entry.id}`;
+        const url = await withRetry("upload", entry, (attempt) =>
           uploadLimit(async () => {
             const bytes = await Bun.file(file.filePath).arrayBuffer();
             if (!globalManager.getRoom(roomId)) throw new Error("Room closed during import");
-            const fileName = deps.generateAudioFileName(`${entry.title}.${file.extension}`);
+            const title = attempt === 0 ? entry.title : fallbackName;
+            const fileName = deps.generateAudioFileName(`${title}.${file.extension}`, fallbackName);
             return deps.uploadBytes(bytes, roomId, fileName, file.contentType);
           })
         );

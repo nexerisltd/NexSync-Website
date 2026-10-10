@@ -71,6 +71,9 @@ export async function pushKaggleWorker(env: Record<string, string>): Promise<{ o
     }
     return { ok: true };
   } catch (error) {
-    return { ok: false, error: `Network error talking to Kaggle: ${error instanceof Error ? error.message : error}` };
+    return {
+      ok: false,
+      error: `Network error talking to Kaggle: ${error instanceof Error ? error.message : String(error)}`,
+    };
   }
 }

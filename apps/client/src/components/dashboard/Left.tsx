@@ -8,6 +8,7 @@ import { Hash } from "lucide-react";
 import { motion } from "motion/react";
 import { AudioUploaderMinimal } from "../AudioUploaderMinimal";
 import { Separator } from "../ui/separator";
+import { Credits } from "../Credits";
 import { YoutubePlaylistImport } from "../YoutubePlaylistImport";
 import { ConnectedUsersList } from "./ConnectedUsersList";
 import { RoomQRCode } from "./CopyRoom";
@@ -100,6 +101,8 @@ export const Left = ({ className }: LeftProps) => {
           <AudioUploaderMinimal />
           <YoutubePlaylistImport />
         </div>
+
+        <Credits compact className="mt-3" />
       </motion.div>
     </motion.div>
   );

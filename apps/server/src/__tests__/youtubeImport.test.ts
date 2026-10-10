@@ -101,4 +101,48 @@ describe.skipIf(isWindows)("POST /upload/youtube-playlist", () => {
     expect((await post({ roomId: ROOM_ID, url })).status).toBe(200);
     await waitUntilFinished();
   });
+
+  it("retries an upload with a plain 'YouTube <id>' name when the bucket rejects the title (InvalidKey)", async () => {
+    const roomId = "424243";
+    globalManager.getOrCreateRoom(roomId);
+    const seen: string[] = [];
+    const picky = createYoutubeImportHandler({
+      validateR2Config: () => ({ isValid: true, errors: [] }),
+      generateAudioFileName: (name: string) => name,
+      uploadBytes: (_bytes, rid, fileName) => {
+        seen.push(fileName);
+        // pretend the bucket refuses any real title, like Supabase does for "[4K]" or Bangla names
+        if (!fileName.startsWith("YouTube ")) return Promise.reject(new Error("HTTP 400 InvalidKey"));
+        return Promise.resolve(`https://cdn.test/room-${rid}/${encodeURIComponent(fileName)}`);
+      },
+      sendBroadcast: ({ message }) => {
+        broadcasts.push(message);
+      },
+      jsonResponse: (data, status = 200) => new Response(JSON.stringify(data), { status }),
+      errorResponse: (message, status = 400) => new Response(message, { status }),
+    });
+
+    broadcasts.length = 0;
+    const res = await picky(
+      new Request("http://localhost/upload/youtube-playlist", {
+        method: "POST",
+        body: JSON.stringify({ roomId, url: "https://www.youtube.com/watch?v=bbbbbbbbbbb" }),
+      }),
+      createMockServer()
+    );
+    expect(res.status).toBe(200);
+
+    const deadline = Date.now() + 10_000;
+    while (Date.now() < deadline && !broadcasts.some((m) => m.type === "STREAM_JOB_UPDATE" && m.importSummary)) {
+      await Bun.sleep(25);
+    }
+
+    // the fake yt-dlp lists 3 playable tracks; each one was refused under its real title, then accepted as "YouTube <id>"
+    const urls = (globalManager.getRoom(roomId)?.getAudioSources() ?? []).map((src) => decodeURIComponent(src.url));
+    expect(urls).toHaveLength(3);
+    expect(urls.some((u) => u.includes("YouTube aaaaaaaaaaa.m4a"))).toBe(true);
+    expect(urls.some((u) => u.includes("YouTube bbbbbbbbbbb.m4a"))).toBe(true);
+    expect(urls.some((u) => u.includes("YouTube ddddddddddd.m4a"))).toBe(true);
+    expect(seen).toContain("First (slow).m4a"); // the first try used the real title
+  });
 });

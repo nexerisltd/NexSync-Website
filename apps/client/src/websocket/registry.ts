@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { describeImportReason } from "@/lib/importReason";
 import { useChatStore } from "@/store/chat";
 import { useGlobalStore } from "@/store/global";
 import { getProbeStats, handleNTPResponse } from "@/utils/ntp";
@@ -155,11 +156,8 @@ export const WS_RESPONSE_REGISTRY: WebsocketResponseRegistry = {
       const summary = response.importSummary;
       if (summary) {
         if (summary.failed > 0) {
-          const botBlock = summary.reason?.toLowerCase().includes("not a bot");
-          toast.error(
-            `${summary.imported} added, ${summary.failed} failed.` +
-              (botBlock ? " YouTube is blocking the server (needs cookies)." : summary.reason ? ` ${summary.reason}` : "")
-          );
+          const why = describeImportReason(summary.reason);
+          toast.error(`${summary.imported} added, ${summary.failed} failed.${why ? ` ${why}` : ""}`);
         } else {
           toast.success(`Imported ${summary.imported} track${summary.imported === 1 ? "" : "s"}`);
         }

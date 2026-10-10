@@ -145,36 +145,59 @@ export async function validateAudioFileExists(audioUrl: string): Promise<boolean
 }
 
 /**
- * Generate a unique file name for audio uploads
+ * Make a track title safe to use inside a storage object key.
+ *
+ * Several S3-compatible providers (Supabase Storage in particular) reject keys that contain characters such as
+ * [ ] { } # % ^ ~ ` or non-ASCII letters/emoji with `400 InvalidKey`. That made YouTube imports of titles like
+ * "Song (Official Video) [4K]" or Bangla/Hindi titles fail while plain titles worked.
+ *
+ * - Accents are stripped (é -> e); anything outside letters, digits and ` _-.()',!` becomes a space.
+ * - Set S3_ALLOW_UNICODE_KEYS=1 (Cloudflare R2, Backblaze B2, AWS S3...) to keep Unicode letters/digits as they are.
+ * - Returns `fallback` (default "audio") when nothing readable is left.
  */
-export function generateAudioFileName(originalName: string): string {
-  // Extract extension
-  const extensionRaw = originalName.split(".").pop();
-  const extension = extensionRaw && extensionRaw.length > 0 ? extensionRaw : "mp3";
+export function toStorageSafeName(name: string, fallback = "audio"): string {
+  const allowUnicode = process.env.S3_ALLOW_UNICODE_KEYS === "1";
+
+  let safe = name.normalize(allowUnicode ? "NFC" : "NFKD");
+  if (!allowUnicode) safe = safe.replace(/\p{M}+/gu, ""); // strip combining accents
+  safe = safe.replace(/[/\\]/g, "-");
+  safe = allowUnicode
+    ? safe.replace(/[^\p{L}\p{M}\p{N} _\-.()',!]/gu, " ")
+    : safe.replace(/[^A-Za-z0-9 _\-.()',!]/g, " ");
+  safe = safe
+    .replace(/_{2,}/g, "_") // "___" is the delimiter between the name and the timestamp
+    .replace(/\s+/g, " ")
+    .replace(/^[\s._-]+|[\s._-]+$/g, "");
+
+  if (safe.length > 150) safe = safe.slice(0, 150).trim();
+  const hasContent = allowUnicode ? /[\p{L}\p{N}]/u.test(safe) : /[A-Za-z0-9]/.test(safe);
+  return hasContent ? safe : fallback;
+}
+
+/**
+ * Generate a unique file name for audio uploads
+ * @param fallbackName used instead of "audio" when the original name has no usable characters (e.g. a title in a
+ *                     script the storage can't hold)
+ */
+export function generateAudioFileName(originalName: string, fallbackName = "audio"): string {
+  // Extract extension (only a short alphanumeric suffix counts as one)
+  const extMatch = /\.([A-Za-z0-9]{1,5})$/.exec(originalName);
+  const extension = extMatch?.[1] ? extMatch[1].toLowerCase() : "mp3";
 
   // Remove extension from name for processing
-  const nameWithoutExt = originalName.replace(/\.[^/.]+$/, "");
+  const nameWithoutExt = extMatch ? originalName.slice(0, extMatch.index) : originalName;
 
-  // Remove slashes from the original name
-  const nameWithoutSlashes = nameWithoutExt.replace(/[/\\]/g, "-");
-
-  // Sanitize filename using the library
-  let safeName = sanitize(nameWithoutSlashes, { replacement: "*" });
-
-  // Truncate if too long (leave room for timestamp and extension)
-  const maxNameLength = 400;
-  if (safeName.length > maxNameLength) {
-    safeName = safeName.substring(0, maxNameLength);
-  }
+  // Storage-safe version of the title (also strips slashes), with sanitize-filename as a last safety net
+  let safeName = sanitize(toStorageSafeName(nameWithoutExt, fallbackName), { replacement: "*" });
 
   // Fallback if name becomes empty after sanitization
   if (!safeName) {
     safeName = "audio";
   }
 
-  // Generate timestamp with date and random component
-  const now = new Date();
-  const dateStr = now.toISOString().replace(":", "-");
+  // Timestamp + short random suffix: unique even when two tracks with the same name are stored in the same millisecond.
+  // (Colons are replaced too: some S3-compatible providers don't like them in keys.)
+  const dateStr = `${new Date().toISOString().replace(/:/g, "-")}-${Math.random().toString(36).slice(2, 6)}`;
 
   return `${safeName}${R2_AUDIO_FILE_NAME_DELIMITER}${dateStr}.${extension}`;
 }

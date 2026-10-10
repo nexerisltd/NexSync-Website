@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { createKey, extractKeyFromUrl, generateAudioFileName, getPublicAudioUrl } from "@/lib/r2";
+import { createKey, extractKeyFromUrl, generateAudioFileName, getPublicAudioUrl, toStorageSafeName } from "@/lib/r2";
 
 describe("R2 Pure Functions", () => {
   describe("createKey", () => {
@@ -64,6 +64,48 @@ describe("R2 Pure Functions", () => {
       // Characters that get fully stripped by sanitize
       const name = generateAudioFileName(".mp3");
       expect(name).toMatch(/^audio___/);
+    });
+  });
+
+  describe("storage-safe names (Supabase InvalidKey regression)", () => {
+    const SAFE = /^[A-Za-z0-9 _\-.()',!]+$/;
+
+    it("removes characters that S3-compatible providers reject", () => {
+      const name = toStorageSafeName("Song (Official Video) [4K] #1 {live} 100% ~best~ `x` ^y");
+      expect(name).toMatch(SAFE);
+      expect(name).toContain("Song (Official Video)");
+      expect(name).not.toMatch(/[[\]{}#%~`^]/);
+    });
+
+    it("strips accents and falls back for titles with no Latin characters", () => {
+      expect(toStorageSafeName("Café Déjà Vu")).toBe("Cafe Deja Vu");
+      expect(toStorageSafeName("আমি তোমাকে ভালোবাসি 🎵", "YouTube abc")).toBe("YouTube abc");
+      expect(toStorageSafeName("🎵🎵", "audio")).toBe("audio");
+    });
+
+    it("keeps Unicode letters when S3_ALLOW_UNICODE_KEYS=1", () => {
+      process.env.S3_ALLOW_UNICODE_KEYS = "1";
+      try {
+        expect(toStorageSafeName("আমি তোমাকে [live]")).toBe("আমি তোমাকে live");
+      } finally {
+        delete process.env.S3_ALLOW_UNICODE_KEYS;
+      }
+    });
+
+    it("never produces the name/timestamp delimiter inside the name and keeps the object key valid", () => {
+      const key = generateAudioFileName("a___b [x] | y.m4a", "YouTube id");
+      const [name] = key.split("___");
+      expect(name).toBe("a_b x y");
+      expect(key).toEndWith(".m4a");
+      expect(key).toMatch(/^[A-Za-z0-9 _\-.()',!*]+$/);
+    });
+
+    it("gives two tracks with the same name different keys", () => {
+      expect(generateAudioFileName("same.m4a")).not.toBe(generateAudioFileName("same.m4a"));
+    });
+
+    it("treats a name without an extension as an mp3 title", () => {
+      expect(generateAudioFileName("Just A Title")).toMatch(/^Just A Title___.*\.mp3$/);
     });
   });
 });

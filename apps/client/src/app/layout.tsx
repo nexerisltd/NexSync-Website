@@ -28,7 +28,12 @@ export const metadata: Metadata = {
   description:
     "Turn every device into a synchronized speaker. NexSync is a music player for multi-device audio playback. Host a listening party today!",
   keywords: ["music", "sync", "audio", "collaboration", "real-time"],
-  authors: [{ name: "NexSync" }],
+  authors: [
+    { name: "Arabi Islam", url: "https://nexeristm.vercel.app/arabiislam46ar" },
+    { name: "MR. ARX", url: "https://nexeristm.vercel.app/mrarxme" },
+  ],
+  creator: "Arabi Islam × MR. ARX",
+  publisher: "NexEris LTD × NexApp OG",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

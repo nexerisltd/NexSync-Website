@@ -18,6 +18,7 @@ import sys
 import tempfile
 import threading
 import time
+import unicodedata
 from concurrent.futures import ThreadPoolExecutor
 
 import requests
@@ -118,28 +119,66 @@ def download(video_id, workdir):
     files = [f for f in os.listdir(workdir) if not f.endswith((".part", ".ytdl"))]
     if not files:
         raise RuntimeError("no audio file produced (maybe larger than the size limit)")
+    # if more than one file shows up, the audio is the biggest one
+    files.sort(key=lambda f: os.path.getsize(os.path.join(workdir, f)), reverse=True)
     return os.path.join(workdir, files[0])
 
 
-def upload(room_id, title, path, retries=3):
+def safe_title(title, video_id):
+    """ASCII-only title that every S3-compatible bucket accepts (Supabase rejects [ ] # % emoji, Bangla... with
+    400 InvalidKey). Falls back to "YouTube <id>" when nothing readable is left."""
+    t = unicodedata.normalize("NFKD", title or "")
+    t = "".join(c for c in t if not unicodedata.combining(c))
+    t = re.sub(r"[^A-Za-z0-9 _.\-()',!]", " ", t)
+    t = re.sub(r"_{2,}", "_", t)
+    t = re.sub(r"\s+", " ", t).strip(" ._-")[:120]
+    return t if re.search(r"[A-Za-z0-9]", t) else f"YouTube {video_id}"
+
+
+def http_error(resp):
+    """Short readable error from an S3-style XML error body (so the toast says InvalidKey, not '<?xml ...')."""
+    body = resp.text or ""
+    code = re.search(r"<Code>(.*?)</Code>", body, re.S)
+    msg = re.search(r"<Message>(.*?)</Message>", body, re.S)
+    if code or msg:
+        detail = ": ".join(x.group(1).strip() for x in (code, msg) if x)
+    else:
+        detail = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", body)).strip()
+    return f"HTTP {resp.status_code} {detail}"[:200]
+
+
+def upload(room_id, title, path, video_id, retries=2):
+    """Upload one file. Tries the real title first; if the bucket refuses the name (4xx) it retries with an
+    ASCII-safe title and finally with a plain "YouTube <id>" name, so one odd title never loses the track."""
     ext = os.path.splitext(path)[1].lstrip(".").lower() or "m4a"
     ctype = CONTENT_TYPES.get(ext, "audio/mpeg")
+    names = []
+    for n in (title, safe_title(title, video_id), f"YouTube {video_id}"):
+        if n not in names:
+            names.append(n)
     last = None
-    for attempt in range(retries):
-        try:
-            r = api("POST", "/upload/get-presigned-url", json={
-                "roomId": room_id, "fileName": f"{title}.{ext}", "contentType": ctype})
-            if r.status_code != 200:
-                raise RuntimeError(f"presign HTTP {r.status_code}: {r.text[:120]}")
-            data = r.json()
-            with open(path, "rb") as f:
-                put = requests.put(data["uploadUrl"], data=f, headers={"Content-Type": ctype}, timeout=300)
-            if put.status_code >= 300:
-                raise RuntimeError(f"bucket upload HTTP {put.status_code}: {put.text[:120]}")
-            return data["publicUrl"]
-        except Exception as e:
-            last = e
-            time.sleep(2 * (attempt + 1))
+    for name in names:
+        for attempt in range(retries):
+            retry_same_name = True
+            try:
+                r = api("POST", "/upload/get-presigned-url", json={
+                    "roomId": room_id, "fileName": f"{name}.{ext}", "contentType": ctype})
+                if r.status_code != 200:
+                    raise RuntimeError(f"presign {http_error(r)}")
+                data = r.json()
+                with open(path, "rb") as f:
+                    put = requests.put(data["uploadUrl"], data=f, headers={"Content-Type": ctype}, timeout=300)
+                if put.status_code >= 300:
+                    if 400 <= put.status_code < 500 and put.status_code != 429:
+                        retry_same_name = False           # the bucket refused this name/request: try the next name
+                    raise RuntimeError(f"bucket upload {http_error(put)}")
+                return data["publicUrl"]
+            except Exception as e:
+                last = e
+                log(f"  upload attempt failed ({str(e)[:140]})")
+                if not retry_same_name:
+                    break
+                time.sleep(2 * (attempt + 1))
     raise last
 
 
@@ -179,7 +218,7 @@ def run_job(job):
                 return
             try:
                 with up_sem:                              # download slot is already free: next track can start
-                    url = upload(room_id, entry["title"], path)
+                    url = upload(room_id, entry["title"], path, entry["id"])
             except Exception as e:
                 state["last_error"] = str(e)
                 log(f"  [{i}] upload failed: {str(e)[:160]}")

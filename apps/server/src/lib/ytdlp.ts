@@ -39,12 +39,6 @@ export function parseYoutubeUrl(raw: string): YoutubeTarget | null {
   if (u.protocol !== "https:" && u.protocol !== "http:") return null;
   if (!ALLOWED_HOSTS.has(u.hostname.toLowerCase())) return null;
 
-  const list = u.searchParams.get("list");
-  if (list) {
-    if (!PLAYLIST_ID_RE.test(list)) return null;
-    return { kind: "playlist", id: list, url: `https://www.youtube.com/playlist?list=${list}` };
-  }
-
   let videoId: string | null = null;
   if (u.hostname === "youtu.be") {
     videoId = u.pathname.split("/")[1] ?? null;
@@ -53,9 +47,21 @@ export function parseYoutubeUrl(raw: string): YoutubeTarget | null {
   } else if (u.pathname.startsWith("/shorts/")) {
     videoId = u.pathname.split("/")[2] ?? null;
   }
+  const validVideoId = videoId && VIDEO_ID_RE.test(videoId) ? videoId : null;
 
-  if (videoId && VIDEO_ID_RE.test(videoId)) {
-    return { kind: "video", id: videoId, url: `https://www.youtube.com/watch?v=${videoId}` };
+  const list = u.searchParams.get("list");
+  if (list) {
+    if (!PLAYLIST_ID_RE.test(list)) return null;
+    // A song link from YouTube / YT Music usually carries an auto-generated "radio"/mix list (RD...) next to the
+    // video id. The person pasted ONE song, so import just that song instead of a 50-track radio.
+    const isAutoMix = list.startsWith("RD");
+    if (!(isAutoMix && validVideoId)) {
+      return { kind: "playlist", id: list, url: `https://www.youtube.com/playlist?list=${list}` };
+    }
+  }
+
+  if (validVideoId) {
+    return { kind: "video", id: validVideoId, url: `https://www.youtube.com/watch?v=${validVideoId}` };
   }
   return null;
 }

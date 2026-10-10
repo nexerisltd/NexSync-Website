@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { SOCIAL_LINKS } from "@/constants";
+import { Credits } from "@/components/Credits";
 import { fetchActiveRooms } from "@/lib/api";
 import { generateName } from "@/lib/randomNames";
 import { validateFullRoomId, validatePartialRoomId } from "@/lib/room";
@@ -301,6 +302,15 @@ export const Join = () => {
           >
             Use native device speakers.
           </motion.p>
+
+          <motion.div
+            className="mt-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.5 }}
+          >
+            <Credits />
+          </motion.div>
 
           {/* Social links (only shown when NEXT_PUBLIC_DISCORD_URL / NEXT_PUBLIC_GITHUB_URL are set) */}
           {(SOCIAL_LINKS.discord || SOCIAL_LINKS.github) && (
