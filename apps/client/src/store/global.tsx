@@ -349,8 +349,14 @@ const getWaitTimeSeconds = (state: GlobalState, targetServerTime: number) => {
 
 const resolveAudioUrl = (url: string): string => (url.startsWith("/") ? `${getApiUrl()}${url}` : url);
 
-const downloadBufferFromURL = async (data: { url: string; onProgress?: (loaded: number, total: number) => void }) => {
+const fetchAndDecode = async (data: { url: string; onProgress?: (loaded: number, total: number) => void }) => {
   const response = await fetch(resolveAudioUrl(data.url));
+  if (!response.ok) {
+    // Without this check an error page (404/403/5xx) gets fed to decodeAudioData -> confusing "failed to load".
+    const err = new Error(`Audio download failed: HTTP ${response.status}`);
+    (err as Error & { retryable?: boolean }).retryable = response.status >= 500 || response.status === 429;
+    throw err;
+  }
   const contentLength = Number(response.headers.get("content-length") ?? 0);
 
   let arrayBuffer: ArrayBuffer;
@@ -383,6 +389,24 @@ const downloadBufferFromURL = async (data: { url: string; onProgress?: (loaded: 
 
   const audioBuffer = await audioContextManager.decodeAudioData(arrayBuffer);
   return { audioBuffer };
+};
+
+// Retries network errors, 5xx/429 and truncated downloads (decode errors). Plain 4xx fail immediately.
+const downloadBufferFromURL = async (data: { url: string; onProgress?: (loaded: number, total: number) => void }) => {
+  const MAX_ATTEMPTS = 3;
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      return await fetchAndDecode(data);
+    } catch (error) {
+      lastError = error;
+      const retryable = (error as { retryable?: boolean }).retryable;
+      if (retryable === false || attempt === MAX_ATTEMPTS) break;
+      console.warn(`Audio load attempt ${attempt} failed for ${data.url}, retrying…`, error);
+      await new Promise((resolve) => setTimeout(resolve, 800 * attempt));
+    }
+  }
+  throw lastError;
 };
 
 const initializationMutex = new Mutex();
@@ -527,6 +551,20 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
         loadAudioSource(as.source.url);
         loaded++;
       }
+    }
+  };
+
+  // Preload idle tracks (e.g. freshly imported ones) in queue order, without exceeding the buffer cache.
+  // Already loaded/loading tracks count against the cap so we never evict what we just loaded.
+  const preloadIdleSources = ({ skip }: { skip?: string } = {}) => {
+    const state = get();
+    let budget =
+      MAX_CACHED_BUFFERS - state.audioSources.filter((as) => as.status === "loaded" || as.status === "loading").length;
+    for (const as of state.audioSources) {
+      if (budget <= 0) break;
+      if (as.source.url === skip || as.status !== "idle") continue;
+      void loadAudioSource(as.source.url);
+      budget--;
     }
   };
 
@@ -1489,6 +1527,10 @@ export const useGlobalStore = create<GlobalState>((set, get) => {
       // In prod, sources load on-demand when the user selects them.
       if (IS_DEMO_MODE && get().isSynced) {
         eagerLoadIdleSources({ skip: currentAudioSource });
+      } else if (!IS_DEMO_MODE) {
+        // Prod: as new tracks arrive (e.g. playlist import), start loading them right away,
+        // up to the buffer cache size, instead of waiting until the user selects them.
+        preloadIdleSources({ skip: currentAudioSource });
       }
 
       // Check if the currently selected/playing track was removed

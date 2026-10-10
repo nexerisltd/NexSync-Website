@@ -32,6 +32,10 @@ const CONCURRENCY = Number(process.env.YT_IMPORT_CONCURRENCY ?? 2);
 
 // One shared limiter for the whole server so many rooms can't overload it.
 const downloadLimit = pLimit(CONCURRENCY);
+// Uploads to the bucket run on their own limiter so the next download starts while the previous file uploads.
+const uploadLimit = pLimit(Number(process.env.YT_IMPORT_UPLOAD_CONCURRENCY ?? 2));
+// Caps tracks "in the pipeline" (downloaded but not yet uploaded) so temp files can't pile up on small disks.
+const pipelineLimit = pLimit(CONCURRENCY + 2);
 // Rooms that currently have a playlist import running (one at a time per room).
 const roomsImporting = new Set<string>();
 
@@ -162,53 +166,59 @@ async function importEntries({
     }
   };
 
-  // Download + upload (never throws) -> public URL or null
   let lastError: string | undefined;
-  const attemptOnce = async (entry: PlaylistEntry): Promise<string | null> => {
-    let downloaded;
-    try {
-      downloaded = await downloadAudio(entry.id);
-      const bytes = await Bun.file(downloaded.filePath).arrayBuffer();
-      if (!globalManager.getRoom(roomId)) return null; // closed during download — don't orphan files in R2
-      const fileName = deps.generateAudioFileName(`${entry.title}.${downloaded.extension}`);
-      return await deps.uploadBytes(bytes, roomId, fileName, downloaded.contentType);
-    } catch (error) {
-      lastError = error instanceof Error ? error.message : String(error);
-      console.error(`YouTube import failed for "${entry.title}" (${entry.id}):`, error);
-      return null;
-    } finally {
-      await downloaded?.cleanup();
+  let imported = 0;
+
+  const withRetry = async <T,>(label: string, entry: PlaylistEntry, fn: () => Promise<T>): Promise<T | null> => {
+    // One retry per stage: free hosts + YouTube throttling fail transiently.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if (!globalManager.getRoom(roomId)) return null; // room closed — stop early
+      try {
+        return await fn();
+      } catch (error) {
+        lastError = error instanceof Error ? error.message : String(error);
+        console.error(`YouTube import ${label} failed for "${entry.title}" (${entry.id}), attempt ${attempt + 1}:`, error);
+      }
     }
+    return null;
   };
 
-  // One retry per track: free hosts + YouTube throttling fail transiently.
-  const fetchAndUpload = (entry: PlaylistEntry): Promise<string | null> =>
-    downloadLimit(async () => {
-      if (!globalManager.getRoom(roomId)) return null; // room closed while queued
-      return (await attemptOnce(entry)) ?? (globalManager.getRoom(roomId) ? await attemptOnce(entry) : null);
+  // Pipeline per track: download -> upload -> add to queue the moment it's ready.
+  // Tracks no longer wait for earlier ones, and the next download overlaps the previous upload.
+  const processEntry = (entry: PlaylistEntry, jobId: string | undefined) =>
+    pipelineLimit(async () => {
+      let downloaded: Awaited<ReturnType<typeof downloadAudio>> | null = null;
+      try {
+        downloaded = await withRetry("download", entry, () => downloadLimit(() => downloadAudio(entry.id)));
+        if (!downloaded) return;
+        const file = downloaded;
+
+        const url = await withRetry("upload", entry, () =>
+          uploadLimit(async () => {
+            const bytes = await Bun.file(file.filePath).arrayBuffer();
+            if (!globalManager.getRoom(roomId)) throw new Error("Room closed during import");
+            const fileName = deps.generateAudioFileName(`${entry.title}.${file.extension}`);
+            return deps.uploadBytes(bytes, roomId, fileName, file.contentType);
+          })
+        );
+
+        const currentRoom = globalManager.getRoom(roomId);
+        if (url && currentRoom) {
+          const sources = currentRoom.addAudioSource({ url });
+          imported++;
+          deps.sendBroadcast({
+            server,
+            roomId,
+            message: { type: "ROOM_EVENT", event: { type: "SET_AUDIO_SOURCES", sources } },
+          });
+        }
+      } finally {
+        await downloaded?.cleanup();
+        if (jobId) finishJob(jobId);
+      }
     });
 
-  // Start everything (the limiter keeps only CONCURRENCY running), then add the tracks
-  // to the room in playlist order as each one becomes ready.
-  const tasks = entries.map((entry) => fetchAndUpload(entry));
-
-  let imported = 0;
-  for (const [i, task] of tasks.entries()) {
-    const url = await task;
-    const jobId = jobIds[i];
-    const currentRoom = globalManager.getRoom(roomId);
-
-    if (url && currentRoom) {
-      const sources = currentRoom.addAudioSource({ url });
-      imported++;
-      deps.sendBroadcast({
-        server,
-        roomId,
-        message: { type: "ROOM_EVENT", event: { type: "SET_AUDIO_SOURCES", sources } },
-      });
-    }
-    if (jobId) finishJob(jobId);
-  }
+  await Promise.all(entries.map((entry, i) => processEntry(entry, jobIds[i])));
 
   const failed = entries.length - imported;
   const finalRoom = globalManager.getRoom(roomId);

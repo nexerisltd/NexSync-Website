@@ -70,7 +70,7 @@ describe.skipIf(isWindows)("POST /upload/youtube-playlist", () => {
     );
   });
 
-  it("imports a playlist in order, skips failures, and clears the job counter", async () => {
+  it("imports tracks as they finish (no head-of-line blocking), skips failures, and clears the job counter", async () => {
     const url = "https://music.youtube.com/playlist?list=PLtest12345";
     const res = await post({ roomId: ROOM_ID, url });
     expect(res.status).toBe(200);
@@ -84,9 +84,13 @@ describe.skipIf(isWindows)("POST /upload/youtube-playlist", () => {
     const room = globalManager.getRoom(ROOM_ID);
     const urls = (room?.getAudioSources() ?? []).map((s) => decodeURIComponent(s.url));
     expect(urls).toHaveLength(3); // "Broken" failed to download, so it is skipped
-    expect(urls[0]).toContain("First (slow).m4a"); // slowest, but still first (playlist order)
-    expect(urls[1]).toContain("Second.m4a");
-    expect(urls[2]).toContain("Fourth.m4a");
+    // Tracks are added as soon as they are ready, so the slow first track no longer blocks the others.
+    expect(urls.some((u) => u.includes("First (slow).m4a"))).toBe(true);
+    expect(urls.some((u) => u.includes("Second.m4a"))).toBe(true);
+    expect(urls.some((u) => u.includes("Fourth.m4a"))).toBe(true);
+    const slowIdx = urls.findIndex((u) => u.includes("First (slow).m4a"));
+    const secondIdx = urls.findIndex((u) => u.includes("Second.m4a"));
+    expect(secondIdx).toBeLessThan(slowIdx); // fast track lands before the slow one
     expect(uploaded.every((u) => u.contentType === "audio/mp4" && u.roomId === ROOM_ID)).toBe(true);
 
     // counter went up to 4 and back down to 0
