@@ -2,6 +2,7 @@ import type { YoutubeImportResponseType } from "@beatsync/shared";
 import { YoutubeImportSchema } from "@beatsync/shared";
 import pLimit from "p-limit";
 import { generateAudioFileName, uploadBytes, validateR2Config } from "@/lib/r2";
+import { isRemoteMode, ytRemote } from "@/lib/ytRemote";
 import { downloadAudio, listEntries, parseYoutubeUrl, YtDlpNotInstalledError } from "@/lib/ytdlp";
 import type { PlaylistEntry } from "@/lib/ytdlp";
 import { globalManager } from "@/managers";
@@ -79,6 +80,17 @@ export const createYoutubeImportHandler =
       const target = parseYoutubeUrl(url);
       if (!target) {
         return deps.errorResponse("Please paste a valid YouTube or YouTube Music playlist/video link", 400);
+      }
+
+      // Remote mode: yt-dlp runs on a cloud worker (Kaggle) because YouTube blocks this server's IP.
+      // The worker lists the playlist and reports each track as soon as it is ready.
+      if (isRemoteMode()) {
+        const job = ytRemote.enqueue({ roomId, url: target.url, server });
+        if (!job) {
+          return deps.errorResponse("An import is already running for this room. Please wait for it to finish.", 429);
+        }
+        const remoteResponse: YoutubeImportResponseType = { success: true, queued: 0, truncated: false };
+        return deps.jsonResponse(remoteResponse);
       }
 
       if (roomsImporting.has(roomId)) {

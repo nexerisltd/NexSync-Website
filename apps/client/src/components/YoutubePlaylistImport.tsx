@@ -31,8 +31,11 @@ export const YoutubePlaylistImport = () => {
       const result = await importYoutubePlaylist({ roomId, url: link });
       setUrl("");
       toast.success(
-        `Importing ${result.queued} track${result.queued === 1 ? "" : "s"} — they'll appear in the queue as they finish` +
-          (result.truncated ? " (playlist was longer than the import limit)" : "")
+        result.queued === 0
+          ? // cloud worker mode: the worker reads the playlist itself, so the count isn't known yet
+            "Sent to the cloud worker — tracks will appear in the queue one by one as they finish"
+          : `Importing ${result.queued} track${result.queued === 1 ? "" : "s"} — they'll appear in the queue as they finish` +
+              (result.truncated ? " (playlist was longer than the import limit)" : "")
       );
     } catch (err) {
       console.error("YouTube import failed:", err);

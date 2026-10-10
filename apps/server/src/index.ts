@@ -10,6 +10,7 @@ import { handleStats } from "@/routes/stats";
 import { handleGetPresignedURL, handleUploadComplete } from "@/routes/upload";
 import { handleWebSocketUpgrade } from "@/routes/websocket";
 import { handleYoutubeImport } from "@/routes/youtubeImport";
+import { handleWorkerEvent, handleWorkerNext } from "@/routes/ytWorker";
 import { handleClose, handleMessage, handleOpen } from "@/routes/websocketHandlers";
 import { corsHeaders, errorResponse } from "@/utils/responses";
 import type { WSData } from "@/utils/websocket";
@@ -64,6 +65,14 @@ const server = Bun.serve<WSData>({
             } else {
               response = await handleYoutubeImport(req, server);
             }
+            break;
+
+          case "/worker/next":
+            response = await handleWorkerNext(req);
+            break;
+
+          case "/worker/event":
+            response = await handleWorkerEvent(req);
             break;
 
           case "/stats":
