@@ -74,8 +74,8 @@ const getFlagSvgURLFromCountryCode = (countryCode: string) => {
 const CountryIsResponseSchema = z.object({
   ip: z.string(),
   country: z.string(),
-  city: z.string().optional(),
-  subdivision: z.string().optional(),
+  city: z.string().nullish(),
+  subdivision: z.string().nullish(),
 });
 
 const getUserLocationCountryIs = async (): Promise<RequiredResponse> => {
@@ -101,7 +101,7 @@ const getUserLocationCountryIs = async (): Promise<RequiredResponse> => {
 const GeoJSResponseSchema = z.object({
   country_code: z.string(),
   country: z.string(),
-  city: z.string().optional(),
+  city: z.string().nullish(),
   region: z.string().optional(),
 });
 
@@ -127,7 +127,7 @@ const getUserLocationGeoJS = async (): Promise<RequiredResponse> => {
 // https://geo.kamero.ai — Vercel Edge, CORS, no key, free
 const KameroGeoResponseSchema = z.object({
   country: z.string(),
-  city: z.string().optional(),
+  city: z.string().nullish(),
   countryRegion: z.string().optional(),
 });
 

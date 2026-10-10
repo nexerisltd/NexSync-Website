@@ -141,3 +141,11 @@ S3_PUBLIC_URL=https://<PROJECT_REF>.supabase.co/storage/v1/object/public/audio
 - Tomar **Logo.png** theke toiri: favicon, apple icon, PWA icon (192/512), join page-er bara logo, top bar-er chhoto logo.
 - Beatsync-er Discord/GitHub link **hide** kora hoyeche (tomar nijer link dite env variable upore).
 - Internal package nam (`@beatsync/shared`) bodlai nai, kaj-er kono khoti nai.
+
+---
+
+## 8. Music search kaj korena? (`PROVIDER_URL`)
+
+Server-er **Search music** feature `PROVIDER_URL` env variable chhara kaj kore na (log-e
+`PROVIDER_URL environment variable is required` ashe). Render-e eta set koro, ba search bad diye
+shudhu **upload** ar **YouTube import** use koro.

@@ -360,8 +360,17 @@ export class RoomManager {
       clientData.isAdmin = true;
     }
 
+    // Same clientId reconnecting: retire the old socket so it can't linger as a ghost.
+    const previousWs = this.wsConnections.get(clientId);
     this.clientData.set(clientId, clientData);
     this.wsConnections.set(clientId, ws);
+    if (previousWs && previousWs !== ws) {
+      try {
+        previousWs.terminate();
+      } catch {
+        // already closed
+      }
+    }
 
     positionClientsInCircle(this.getClients());
 
@@ -375,7 +384,12 @@ export class RoomManager {
   /**
    * Remove a client from the room
    */
-  removeClient(clientId: string): void {
+  removeClient(clientId: string, ws?: ServerWebSocket<WSData>): void {
+    // A client that reconnects (same clientId) gets a NEW socket registered before the OLD
+    // socket's close event fires. Without this check the late close would delete the new
+    // connection and the user would vanish from the room list.
+    if (ws && this.wsConnections.get(clientId) !== ws) return;
+
     // Only remove from wsConnections, keep clientData for rejoin scenarios
     this.wsConnections.delete(clientId);
     if (this.demoAudioReadyClients.delete(clientId)) {

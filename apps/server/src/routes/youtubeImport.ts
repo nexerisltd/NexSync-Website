@@ -163,22 +163,29 @@ async function importEntries({
   };
 
   // Download + upload (never throws) -> public URL or null
+  let lastError: string | undefined;
+  const attemptOnce = async (entry: PlaylistEntry): Promise<string | null> => {
+    let downloaded;
+    try {
+      downloaded = await downloadAudio(entry.id);
+      const bytes = await Bun.file(downloaded.filePath).arrayBuffer();
+      if (!globalManager.getRoom(roomId)) return null; // closed during download — don't orphan files in R2
+      const fileName = deps.generateAudioFileName(`${entry.title}.${downloaded.extension}`);
+      return await deps.uploadBytes(bytes, roomId, fileName, downloaded.contentType);
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+      console.error(`YouTube import failed for "${entry.title}" (${entry.id}):`, error);
+      return null;
+    } finally {
+      await downloaded?.cleanup();
+    }
+  };
+
+  // One retry per track: free hosts + YouTube throttling fail transiently.
   const fetchAndUpload = (entry: PlaylistEntry): Promise<string | null> =>
     downloadLimit(async () => {
       if (!globalManager.getRoom(roomId)) return null; // room closed while queued
-      let downloaded;
-      try {
-        downloaded = await downloadAudio(entry.id);
-        const bytes = await Bun.file(downloaded.filePath).arrayBuffer();
-        if (!globalManager.getRoom(roomId)) return null; // closed during download — don't orphan files in R2
-        const fileName = deps.generateAudioFileName(`${entry.title}.${downloaded.extension}`);
-        return await deps.uploadBytes(bytes, roomId, fileName, downloaded.contentType);
-      } catch (error) {
-        console.error(`YouTube import failed for "${entry.title}" (${entry.id}):`, error);
-        return null;
-      } finally {
-        await downloaded?.cleanup();
-      }
+      return (await attemptOnce(entry)) ?? (globalManager.getRoom(roomId) ? await attemptOnce(entry) : null);
     });
 
   // Start everything (the limiter keeps only CONCURRENCY running), then add the tracks
@@ -201,6 +208,20 @@ async function importEntries({
       });
     }
     if (jobId) finishJob(jobId);
+  }
+
+  const failed = entries.length - imported;
+  const finalRoom = globalManager.getRoom(roomId);
+  if (finalRoom) {
+    deps.sendBroadcast({
+      server,
+      roomId,
+      message: {
+        type: "STREAM_JOB_UPDATE",
+        activeJobCount: finalRoom.getActiveStreamJobCount(),
+        importSummary: { imported, failed, reason: failed > 0 ? lastError : undefined },
+      },
+    });
   }
 
   console.log(`✅ YouTube import finished for room ${roomId}: ${imported}/${entries.length} tracks added`);

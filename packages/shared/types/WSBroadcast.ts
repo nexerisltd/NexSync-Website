@@ -117,6 +117,14 @@ export type LowPassConfigType = z.infer<typeof LowPassConfigSchema>;
 const StreamJobUpdateSchema = z.object({
   type: z.literal(ServerActionEnum.enum.STREAM_JOB_UPDATE),
   activeJobCount: z.number().nonnegative(),
+  // Sent once when a YouTube playlist import ends, so the UI can say what really happened.
+  importSummary: z
+    .object({
+      imported: z.number().nonnegative(),
+      failed: z.number().nonnegative(),
+      reason: z.string().optional(),
+    })
+    .optional(),
 });
 export type StreamJobUpdateType = z.infer<typeof StreamJobUpdateSchema>;
 

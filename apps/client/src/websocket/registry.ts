@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useChatStore } from "@/store/chat";
 import { useGlobalStore } from "@/store/global";
 import { getProbeStats, handleNTPResponse } from "@/utils/ntp";
@@ -151,6 +152,18 @@ export const WS_RESPONSE_REGISTRY: WebsocketResponseRegistry = {
     handle: ({ response }) => {
       console.log("Received stream job update:", response.activeJobCount);
       useGlobalStore.getState().setActiveStreamJobs(response.activeJobCount);
+      const summary = response.importSummary;
+      if (summary) {
+        if (summary.failed > 0) {
+          const botBlock = summary.reason?.toLowerCase().includes("not a bot");
+          toast.error(
+            `${summary.imported} added, ${summary.failed} failed.` +
+              (botBlock ? " YouTube is blocking the server (needs cookies)." : summary.reason ? ` ${summary.reason}` : "")
+          );
+        } else {
+          toast.success(`Imported ${summary.imported} track${summary.imported === 1 ? "" : "s"}`);
+        }
+      }
     },
     description: "Active stream job count changed",
   },

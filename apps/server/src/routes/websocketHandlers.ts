@@ -228,7 +228,13 @@ export const handleClose = (ws: ServerWebSocket<WSData>, server: BunServer) => {
     const room = globalManager.getRoom(roomId);
 
     if (room) {
-      room.removeClient(clientId);
+      room.removeClient(clientId, ws);
+
+      // Stale socket (the client already reconnected): nothing else to do.
+      if (room.hasActiveConnections() && room.getClients().some((c) => c.clientId === clientId)) {
+        ws.unsubscribe(roomId);
+        return;
+      }
 
       // Schedule cleanup for rooms with no active connections
       if (!room.hasActiveConnections()) {
