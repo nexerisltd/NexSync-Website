@@ -6,6 +6,8 @@ import { Crown, Hash, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { FaDiscord, FaGithub } from "react-icons/fa";
+import { DevCollabDialog } from "../DevCollab";
+import { InstallAppButton } from "../InstallAppButton";
 import { SyncProgress } from "../ui/SyncProgress";
 
 interface TopBarProps {
@@ -27,7 +29,7 @@ export const TopBar = ({ roomId }: TopBarProps) => {
   // Show minimal nav bar when synced and not loading
   if (!isLoadingAudio && isSynced) {
     return (
-      <div className="h-8 bg-black/80 backdrop-blur-md z-50 flex items-center justify-between px-4 border-b border-zinc-800">
+      <div className="h-9 glass-flat z-50 flex items-center justify-between px-4">
         <div className="flex items-center space-x-4 text-xs text-neutral-400 py-2 md:py-0">
           {isAdmin && (
             <div className="flex items-center">
@@ -97,6 +99,8 @@ export const TopBar = ({ roomId }: TopBarProps) => {
         </div>
 
         <div className="flex items-center justify-center gap-2.5">
+          <InstallAppButton />
+          <DevCollabDialog variant="bar" className="hidden sm:flex" />
           {/* Discord icon (only if NEXT_PUBLIC_DISCORD_URL is set) */}
           {SOCIAL_LINKS.discord && (
             <a

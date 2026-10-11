@@ -7,10 +7,10 @@ import { SpatialAudio } from "./right/SpatialAudio";
 
 export const Right = () => {
   return (
-    <div className="w-full lg:w-80 lg:flex-shrink-0 border-l border-neutral-800/50 bg-neutral-900/50 backdrop-blur-md flex flex-col h-full">
+    <div className="w-full lg:w-80 lg:flex-shrink-0 glass-flat flex flex-col h-full">
       <Tabs defaultValue="chat" className="flex flex-col h-full">
         <div className="p-2 pb-0 flex-shrink-0">
-          <TabsList className="bg-neutral-900 w-full">
+          <TabsList className="bg-white/5 w-full">
             <TabsTrigger value="chat" className="flex-1">
               <MessageCircle className="h-3.5 w-3.5 mr-1.5" />
               Chat

@@ -142,8 +142,12 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    background: #04060d;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background: transparent; /* the aurora layer (.nx-aurora) sits behind everything */
   }
 }
 
@@ -205,15 +209,223 @@
 @theme inline {
   --font-inter: var(--font-inter);
   /* https://kyrylo.org/css/2025/02/09/oklch-css-variables-for-tailwind-v4-colors.html */
-  --color-primary-50: oklch(98.19% 0.0181 155.83);
-  --color-primary-100: oklch(96.24% 0.0434 156.74);
-  --color-primary-200: oklch(92.5% 0.0806 155.99);
-  --color-primary-300: oklch(87.12% 0.1363 154.45);
-  --color-primary-400: oklch(80.03% 0.1821 151.71);
-  --color-primary-500: oklch(72.27% 0.192 149.58);
-  --color-primary-600: oklch(62.71% 0.1699 149.21);
-  --color-primary-700: oklch(52.73% 0.1371 150.07);
-  --color-primary-800: oklch(44.79% 0.1083 151.33);
-  --color-primary-900: oklch(39.25% 0.0896 152.54);
-  --color-primary-950: oklch(26.64% 0.0628 152.93);
+  /* NexSync brand blue (from the logo) */
+  --color-primary-50: oklch(97% 0.014 254);
+  --color-primary-100: oklch(94.5% 0.03 254);
+  --color-primary-200: oklch(89.5% 0.062 254);
+  --color-primary-300: oklch(83% 0.105 253);
+  --color-primary-400: oklch(74% 0.15 252);
+  --color-primary-500: oklch(65% 0.19 250);
+  --color-primary-600: oklch(57% 0.2 256);
+  --color-primary-700: oklch(50% 0.19 258);
+  --color-primary-800: oklch(43% 0.15 259);
+  --color-primary-900: oklch(38% 0.115 260);
+  --color-primary-950: oklch(28% 0.08 262);
+}
+
+/* =====================================================================
+   NexSync design system — Liquid Glass × Fluent
+   .glass / .glass-strong / .glass-flat : frosted surfaces with a specular highlight
+   .nx-aurora                           : animated colour field behind the app
+   .nx-glow-border                      : animated gradient ring (used to highlight Dev Collab)
+   ===================================================================== */
+:root {
+  --nx-blue: #3aa0ff;
+  --nx-cyan: #35e0ff;
+  --nx-violet: #8a7bff;
+  --nx-glass-border: rgba(255, 255, 255, 0.13);
+  --nx-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Animated gradient ring for highlighted cards */
+@property --nx-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* Component rules live in a layer so Tailwind utilities (bg-none, border-0, ...) can override them */
+@layer components {
+  .nx-aurora {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(60% 50% at 12% 8%, rgba(58, 160, 255, 0.22), transparent 70%),
+      radial-gradient(50% 45% at 88% 12%, rgba(138, 123, 255, 0.18), transparent 70%),
+      radial-gradient(55% 50% at 70% 95%, rgba(53, 224, 255, 0.14), transparent 70%),
+      radial-gradient(45% 40% at 5% 90%, rgba(58, 160, 255, 0.1), transparent 70%), #04060d;
+    background-size:
+      140% 140%,
+      140% 140%,
+      140% 140%,
+      140% 140%,
+      auto;
+    animation: nx-aurora-drift 28s ease-in-out infinite alternate;
+  }
+
+  @keyframes nx-aurora-drift {
+    0% {
+      background-position:
+        0% 0%,
+        100% 0%,
+        100% 100%,
+        0% 100%,
+        0 0;
+    }
+    100% {
+      background-position:
+        12% 14%,
+        86% 10%,
+        90% 86%,
+        10% 90%,
+        0 0;
+    }
+  }
+
+  /* Frosted surface with a liquid-glass specular highlight (top-left light, soft rim) */
+  .glass,
+  .glass-strong,
+  .glass-flat {
+    border: 1px solid var(--nx-glass-border);
+    -webkit-backdrop-filter: blur(22px) saturate(165%);
+    backdrop-filter: blur(22px) saturate(165%);
+  }
+
+  .glass {
+    background:
+      radial-gradient(120% 70% at 12% 0%, rgba(255, 255, 255, 0.16), transparent 55%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.025));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+      0 10px 34px rgba(0, 0, 0, 0.32);
+  }
+
+  .glass-strong {
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    backdrop-filter: blur(30px) saturate(180%);
+    background:
+      radial-gradient(120% 60% at 10% 0%, rgba(255, 255, 255, 0.14), transparent 55%),
+      linear-gradient(135deg, rgba(24, 32, 52, 0.74), rgba(10, 14, 26, 0.7));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.24),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.05),
+      0 18px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Bars and side panels: edge-to-edge, no big shadow, only a soft rim */
+  .glass-flat {
+    border-width: 0;
+    background:
+      radial-gradient(100% 120% at 0% 0%, rgba(255, 255, 255, 0.07), transparent 60%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  }
+
+  /* Fluent-style hover: a gentle lift and a brighter rim */
+  .glass-hover {
+    transition:
+      transform 0.25s var(--nx-ease),
+      box-shadow 0.25s var(--nx-ease),
+      border-color 0.25s var(--nx-ease);
+  }
+  .glass-hover:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.26);
+  }
+
+  /* Liquid primary button */
+  .nx-btn {
+    position: relative;
+    color: #fff;
+    background:
+      radial-gradient(120% 90% at 20% 0%, rgba(255, 255, 255, 0.4), transparent 55%),
+      linear-gradient(135deg, #2f8dff, #5b6dff 60%, #8a7bff);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.45),
+      0 8px 24px rgba(58, 130, 255, 0.4);
+    transition:
+      transform 0.2s var(--nx-ease),
+      box-shadow 0.2s var(--nx-ease),
+      filter 0.2s var(--nx-ease);
+  }
+  .nx-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.08);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      0 12px 32px rgba(58, 130, 255, 0.55);
+  }
+  .nx-btn:active {
+    transform: translateY(0) scale(0.99);
+  }
+  .nx-btn:disabled {
+    filter: grayscale(0.6) brightness(0.8);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  .nx-gradient-text {
+    background: linear-gradient(90deg, #8fd0ff, #35e0ff 40%, #a99bff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .nx-glow-border {
+    position: relative;
+  }
+  .nx-glow-border::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1.5px;
+    pointer-events: none;
+    background: conic-gradient(from var(--nx-angle), transparent 0 55%, var(--nx-cyan), var(--nx-violet), transparent);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    animation: nx-spin 7s linear infinite;
+  }
+  @keyframes nx-spin {
+    to {
+      --nx-angle: 360deg;
+    }
+  }
+
+  /* No blur support, or the person asked for less transparency: fall back to solid, readable surfaces */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass,
+    .glass-strong,
+    .glass-flat {
+      background: rgba(16, 22, 38, 0.94);
+    }
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .glass,
+    .glass-strong,
+    .glass-flat {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      background: rgba(16, 22, 38, 0.96);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nx-aurora,
+    .nx-glow-border::after {
+      animation: none;
+    }
+    .glass-hover,
+    .nx-btn {
+      transition: none;
+    }
+  }
 }

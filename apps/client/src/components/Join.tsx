@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { SOCIAL_LINKS } from "@/constants";
-import { Credits } from "@/components/Credits";
+import { DevCollab } from "@/components/DevCollab";
 import { fetchActiveRooms } from "@/lib/api";
 import { generateName } from "@/lib/randomNames";
 import { validateFullRoomId, validatePartialRoomId } from "@/lib/room";
@@ -88,7 +88,7 @@ export const Join = () => {
       {/* <AnnouncementBanner /> */}
       <div className="w-full px-2.5 lg:px-1 max-w-[28rem] mx-auto mt-24 lg:mt-28">
         <motion.div
-          className="flex flex-col items-center justify-center p-6 bg-neutral-900 rounded-lg border border-neutral-800 shadow-xl mx-auto"
+          className="glass-strong flex flex-col items-center justify-center p-6 rounded-3xl mx-auto"
           initial={{ opacity: 0, y: 10, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -172,7 +172,7 @@ export const Join = () => {
                         <InputOTPSlot
                           key={index}
                           index={index}
-                          className="w-9 h-10 text-base bg-neutral-800/80 border-neutral-700 transition-all duration-200 
+                          className="w-9 h-10 text-base bg-white/5 border-white/15 transition-all duration-200 
                           focus-within:border-primary/70 focus-within:bg-neutral-800 focus-within:ring-1 focus-within:ring-primary/30"
                         />
                       ))}
@@ -237,7 +237,7 @@ export const Join = () => {
             <div className="flex flex-col gap-3 mt-5">
               <motion.button
                 type="button"
-                className="px-5 py-2 bg-primary text-primary-foreground rounded-full font-medium text-sm tracking-wide cursor-pointer w-full hover:shadow-lg hover:shadow-zinc-50/50 transition-shadow duration-500 flex items-center justify-center"
+                className="nx-btn px-5 py-2.5 rounded-full font-medium text-sm tracking-wide cursor-pointer w-full flex items-center justify-center"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 whileHover={{
@@ -303,15 +303,6 @@ export const Join = () => {
             Use native device speakers.
           </motion.p>
 
-          <motion.div
-            className="mt-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4, delay: 0.5 }}
-          >
-            <Credits />
-          </motion.div>
-
           {/* Social links (only shown when NEXT_PUBLIC_DISCORD_URL / NEXT_PUBLIC_GITHUB_URL are set) */}
           {(SOCIAL_LINKS.discord || SOCIAL_LINKS.github) && (
             <>
@@ -354,6 +345,16 @@ export const Join = () => {
               </motion.div>
             </>
           )}
+        </motion.div>
+
+        {/* Dev Collab: highlighted credit card with the developers' profile pictures */}
+        <motion.div
+          className="mt-4"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <DevCollab />
         </motion.div>
 
         {/* Active Rooms Section */}

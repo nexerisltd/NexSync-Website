@@ -33,7 +33,7 @@ export const Dashboard = ({ roomId }: DashboardProps) => {
   };
 
   return (
-    <div className="w-full h-dvh flex flex-col text-white bg-neutral-950">
+    <div className="w-full h-dvh flex flex-col text-white">
       <BeatFlash />
       {/* Top bar: Fixed height */}
       <TopBar roomId={roomId} />
@@ -59,7 +59,7 @@ export const Dashboard = ({ roomId }: DashboardProps) => {
           <div className="flex flex-1 flex-col lg:hidden min-h-0">
             <Tabs defaultValue="queue" className="flex-1 flex flex-col overflow-hidden min-h-0">
               {/* Tab List at the top for mobile */}
-              <TabsList className="shrink-0 grid w-full grid-cols-3 h-12 rounded-none p-0 bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-950">
+              <TabsList className="shrink-0 grid w-full grid-cols-3 h-12 rounded-none p-0 glass-flat bg-transparent">
                 <TabsTrigger
                   value="library"
                   className="flex-1 data-[state=active]:bg-white/5 data-[state=active]:shadow-none rounded-none text-xs h-full gap-1 text-neutral-400 data-[state=active]:text-white transition-all duration-200"

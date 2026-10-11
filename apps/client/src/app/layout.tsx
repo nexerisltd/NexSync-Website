@@ -52,6 +52,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           "antialiased font-sans selection:bg-primary-800 selection:text-white"
         )}
       >
+        <div className="nx-aurora" aria-hidden="true" />
         <PostHogProvider>
           <TQProvider>
             {children}
