@@ -130,7 +130,7 @@ export const GlobalVolumeControl = ({ className, isMobile = false }: GlobalVolum
     return (
       <div className={cn("", className)}>
         <div className="flex items-center justify-between px-4 pt-3">
-          <h2 className="text-xs font-medium uppercase tracking-wider text-neutral-500 flex items-center gap-2">
+          <h2 className="text-xs font-medium uppercase tracking-wider text-neutral-400 flex items-center gap-2">
             <Volume2 className="h-3.5 w-3.5" />
             <span>Global Volume</span>
           </h2>

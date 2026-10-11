@@ -128,15 +128,15 @@ export const DevCollab = ({ className }: { className?: string }) => {
 
       <div className="flex items-start justify-center gap-2">
         {team[0] && <Member member={team[0]} />}
-        <span className="mt-6 select-none text-lg font-light text-neutral-500">×</span>
+        <span className="mt-6 select-none text-lg font-light text-neutral-400">×</span>
         {team[1] && <Member member={team[1]} />}
       </div>
 
       <footer className="mt-4 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 border-t border-white/10 pt-3 text-[11px] text-neutral-400">
-        <span className="text-neutral-500">Brand</span>
+        <span className="text-neutral-400">Brand</span>
         {CREDITS.brands.map((brand, i) => (
           <span key={brand.url} className="flex items-center gap-1.5">
-            {i > 0 && <span className="text-neutral-600">×</span>}
+            {i > 0 && <span className="text-neutral-500">×</span>}
             <a
               href={brand.url}
               target="_blank"
@@ -169,7 +169,7 @@ export const DevCollabDialog = ({
           aria-label="Dev Collab"
           className={cn(
             variant === "sidebar"
-              ? "glass glass-hover mx-2 mt-3 flex items-center gap-3 rounded-2xl px-3 py-2 text-left"
+              ? "nx-card mx-2 mt-2 flex w-[calc(100%-1rem)] items-center gap-3 px-3 py-2 text-left"
               : "flex items-center gap-1.5 rounded-full border border-white/12 bg-white/5 py-0.5 pr-2 pl-0.5 transition-colors hover:bg-white/10",
             className
           )}

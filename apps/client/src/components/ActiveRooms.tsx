@@ -41,7 +41,7 @@ export const ActiveRooms = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
     >
-      <h3 className="text-xs font-medium text-neutral-500 mb-1.5 uppercase tracking-[0.1em]">Playing Now</h3>
+      <h3 className="text-xs font-medium text-neutral-400 mb-1.5 uppercase tracking-[0.1em]">Playing Now</h3>
       <div className="space-y-1">
         <AnimatePresence initial={true}>
           {discoverRooms.map((room, index) => (
@@ -101,8 +101,8 @@ export const ActiveRooms = () => {
                           // eslint-disable-next-line @next/next/no-img-element -- external SVG flag URLs not compatible with next/image optimization
                           <img src={flagSvgURL} alt="Country flag" className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full bg-neutral-800 flex items-center justify-center">
-                            <Users2 className="w-5 h-5 text-neutral-600" />
+                          <div className="w-full h-full bg-white/8 flex items-center justify-center">
+                            <Users2 className="w-5 h-5 text-neutral-500" />
                           </div>
                         )}
                       </div>
@@ -118,7 +118,7 @@ export const ActiveRooms = () => {
                       {extractFileNameFromUrl(room.playbackState.audioSource) || "No track playing"}
                     </p>
                     {room.audioSources.length > 1 && (
-                      <span className="text-[11px] text-neutral-500 font-medium flex-shrink-0">
+                      <span className="text-[11px] text-neutral-400 font-medium flex-shrink-0">
                         {room.audioSources.length} tracks
                       </span>
                     )}
@@ -126,7 +126,7 @@ export const ActiveRooms = () => {
 
                   {/* Bottom row: Room ID + avatars */}
                   <div className="flex items-center justify-between">
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs text-neutral-400">
                       <span className="font-mono">{room.roomId}</span>
                       {(() => {
                         const oldestClient = getOldestClient(room.clients);
@@ -138,7 +138,7 @@ export const ActiveRooms = () => {
                         if (locationParts.length > 0) {
                           return (
                             <>
-                              <span className="mx-1.5 inline-block size-[3px] rounded-full bg-neutral-600 align-middle"></span>
+                              <span className="mx-1.5 inline-block size-[3px] rounded-full bg-white/10 align-middle"></span>
                               <span className="font-normal">{locationParts.join(", ")}</span>
                             </>
                           );
@@ -157,22 +157,22 @@ export const ActiveRooms = () => {
                                 alt={`${client.location.country || "Country"} flag`}
                               />
                             ) : (
-                              <AvatarFallback className="bg-neutral-800">
-                                <Users2 className="w-2 h-2 text-neutral-500" />
+                              <AvatarFallback className="bg-white/8">
+                                <Users2 className="w-2 h-2 text-neutral-400" />
                               </AvatarFallback>
                             )}
                           </Avatar>
                         ))}
                       </div>
                       {room.clients.length > 5 && (
-                        <span className="text-[10px] text-neutral-500 font-medium">+{room.clients.length - 5}</span>
+                        <span className="text-[10px] text-neutral-400 font-medium">+{room.clients.length - 5}</span>
                       )}
                     </div>
                   </div>
                 </div>
 
                 {/* Arrow */}
-                <ChevronRight className="w-4 h-4 text-neutral-600 group-hover:text-neutral-400 transition-colors flex-shrink-0" />
+                <ChevronRight className="w-4 h-4 text-neutral-500 group-hover:text-neutral-400 transition-colors flex-shrink-0" />
               </div>
             </motion.div>
           ))}

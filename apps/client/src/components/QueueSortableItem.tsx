@@ -126,10 +126,10 @@ export const QueueSortableItem = ({
         }
         className={cn(
           "flex items-center pl-2 pr-4 py-3 rounded-md group transition-colors select-none",
-          isSelected ? "text-white hover:bg-neutral-700/20" : "text-neutral-300 hover:bg-neutral-700/20",
+          isSelected ? "text-white hover:bg-white/15" : "text-neutral-300 hover:bg-white/15",
           !canMutate && "text-white/50",
           (isLoading || isError) && "opacity-60 cursor-not-allowed",
-          isDragging && "bg-neutral-700/20"
+          isDragging && "bg-white/8"
         )}
         onClick={() => handleItemClick(sourceState)}
       >
@@ -245,7 +245,7 @@ export const QueueSortableItem = ({
         {/* Duration & Delete Button */}
         <div className="ml-4 flex items-center gap-2">
           <motion.div
-            className="text-xs text-neutral-500 select-none min-w-[3rem] text-right"
+            className="text-xs text-neutral-400 select-none min-w-[3rem] text-right"
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
@@ -278,7 +278,7 @@ export const QueueSortableItem = ({
           {/* Direct delete button */}
           {canMutate && (
             <button
-              className="p-1 rounded-full text-neutral-500 hover:text-red-400 transition-colors hover:scale-110 duration-150 focus:outline-none focus:text-red-400 focus:scale-110"
+              className="p-1 rounded-full text-neutral-400 hover:text-red-400 transition-colors hover:scale-110 duration-150 focus:outline-none focus:text-red-400 focus:scale-110"
               onClick={(e) => {
                 e.stopPropagation();
                 const socket = useGlobalStore.getState().socket;
@@ -302,7 +302,7 @@ export const QueueSortableItem = ({
             asChild
             onClick={(e) => e.stopPropagation()}
           >
-            <button className="p-1 rounded-full text-neutral-500 hover:text-white transition-colors hover:scale-110 duration-150 focus:outline-none focus:text-white focus:scale-110">
+            <button className="p-1 rounded-full text-neutral-400 hover:text-white transition-colors hover:scale-110 duration-150 focus:outline-none focus:text-white focus:scale-110">
               <MoreHorizontal className="size-4" />
             </button>
           </DropdownMenuTrigger>

@@ -49,7 +49,7 @@ const ClientAvatar = memo<ClientAvatarProps>(({ client, isCurrentUser, animation
           <div className={cn("relative")}>
             <Avatar className={cn("size-10 border-2", "border-border")}>
               <AvatarImage />
-              <AvatarFallback className={isCurrentUser ? "bg-primary-600" : "bg-neutral-600"}>
+              <AvatarFallback className={isCurrentUser ? "bg-primary-600" : "bg-white/10"}>
                 {client.username.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
@@ -59,7 +59,7 @@ const ClientAvatar = memo<ClientAvatarProps>(({ client, isCurrentUser, animation
                 key={`ping-${animationSyncKey}`}
                 className={cn(
                   "absolute inset-0 rounded-full opacity-75 animate-ping",
-                  isCurrentUser ? "bg-primary-400/40" : "bg-neutral-600"
+                  isCurrentUser ? "bg-primary-400/40" : "bg-white/10"
                 )}
               ></span>
             )}
@@ -402,7 +402,7 @@ export const UserGrid = () => {
         )}
         <div className="flex mb-4 justify-end mt-2">
           <Button
-            className="text-xs px-3 py-1 h-auto bg-neutral-700/60 hover:bg-neutral-700 text-white transition-colors duration-200 cursor-pointer w-fit disabled:opacity-50 disabled:cursor-not-allowed"
+            className="text-xs px-3 py-1 h-auto bg-white/8 hover:bg-white/15 text-white transition-colors duration-200 cursor-pointer w-fit disabled:opacity-50 disabled:cursor-not-allowed"
             size="sm"
             disabled={!canMutate}
             onClick={() => reorderClient(clientId || "")}

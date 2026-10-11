@@ -236,7 +236,7 @@ export function SearchResults({ className, onTrackSelect }: SearchResultsProps) 
                 stroke="currentColor"
                 strokeWidth="6"
                 strokeLinecap="round"
-                className="text-neutral-600"
+                className="text-neutral-500"
                 strokeDasharray={2 * Math.PI * 42}
                 strokeDashoffset={2 * Math.PI * 42 * 0.75}
                 style={{
@@ -322,7 +322,7 @@ export function SearchResults({ className, onTrackSelect }: SearchResultsProps) 
                 delay: index * 0.06,
                 ease: "easeInOut",
               }}
-              className="group hover:bg-neutral-800 px-3 py-2 transition-all duration-200 cursor-pointer flex items-center gap-3 rounded-md"
+              className="group hover:bg-white/10 px-3 py-2 transition-all duration-200 cursor-pointer flex items-center gap-3 rounded-md"
               onClick={() => handleAddTrack(track)}
             >
               {/* Album Art */}
@@ -333,7 +333,7 @@ export function SearchResults({ className, onTrackSelect }: SearchResultsProps) 
                   alt={track.album.title}
                   // width={40}
                   // height={40}
-                  className="w-10 h-10 rounded object-cover bg-neutral-800"
+                  className="w-10 h-10 rounded object-cover bg-white/8"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src =
                       "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23404040'/%3E%3Ctext x='50' y='50' text-anchor='middle' dy='.3em' fill='%23888' font-size='14'%3E♪%3C/text%3E%3C/svg%3E";
@@ -345,13 +345,13 @@ export function SearchResults({ className, onTrackSelect }: SearchResultsProps) 
               <div className="flex-1 min-w-0">
                 <h4 className="font-normal text-white truncate text-sm">
                   {track.title}
-                  {track.version && <span className="text-neutral-500 ml-1">({track.version})</span>}
+                  {track.version && <span className="text-neutral-400 ml-1">({track.version})</span>}
                 </h4>
                 <p className="text-xs text-neutral-400 truncate">{track.performer.name}</p>
               </div>
 
               {/* Duration */}
-              <div className="text-xs text-neutral-500 group-hover:text-neutral-400 transition-colors">
+              <div className="text-xs text-neutral-400 group-hover:text-neutral-400 transition-colors">
                 {formatTime(track.duration)}
               </div>
 
@@ -382,7 +382,7 @@ export function SearchResults({ className, onTrackSelect }: SearchResultsProps) 
               loadMoreSearchResults();
             }}
             disabled={isLoadingMoreResults}
-            className="w-full justify-center text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800 transition-all duration-200 h-8 text-xs font-normal cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full justify-center text-neutral-400 hover:text-neutral-300 hover:bg-white/10 transition-all duration-200 h-8 text-xs font-normal cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoadingMoreResults ? (
               <div className="flex items-center justify-center gap-2">

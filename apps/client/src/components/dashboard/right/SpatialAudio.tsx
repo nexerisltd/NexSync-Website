@@ -20,7 +20,7 @@ export const SpatialAudio = ({ className }: SpatialAudioProps) => {
         <AudioControls />
       </motion.div>
 
-      <motion.div className="flex flex-col gap-3 px-4 py-3 mt-1 bg-neutral-800/30 rounded-lg mb-3 text-neutral-400">
+      <motion.div className="flex flex-col gap-3 px-4 py-3 mt-1 bg-white/4 rounded-lg mb-3 text-neutral-400">
         <div className="flex items-start gap-2">
           <div>
             <h5 className="text-xs font-medium text-neutral-300 mb-1 flex items-center gap-1.5">

@@ -51,7 +51,7 @@ interface SyncProgressProps {
 const OuterModal = ({ children }: { children: React.ReactNode }) => {
   return (
     <motion.div
-      className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-neutral-950 backdrop-blur-sm"
+      className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-[#04060d]/55 backdrop-blur-xl"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
@@ -99,7 +99,7 @@ export const SyncProgress = ({ isLoading = false, loadingMessage = "Loading..." 
     return (
       <OuterModal>
         <motion.div
-          className="flex flex-col items-center justify-center p-6 bg-neutral-900 rounded-md border border-neutral-800 shadow-lg"
+          className="flex flex-col items-center justify-center p-6 glass-strong rounded-2xl"
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
@@ -150,7 +150,7 @@ export const SyncProgress = ({ isLoading = false, loadingMessage = "Loading..." 
 
           <motion.a
             href="/"
-            className="mt-4 px-5 py-2 bg-primary text-primary-foreground rounded-full font-medium text-xs tracking-wide cursor-pointer w-full hover:shadow-lg hover:shadow-zinc-50/50 transition-shadow duration-500 text-center"
+            className="mt-4 px-5 py-2 nx-btn rounded-full font-medium text-xs tracking-wide cursor-pointer w-full  text-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             whileHover={{
@@ -163,7 +163,7 @@ export const SyncProgress = ({ isLoading = false, loadingMessage = "Loading..." 
           </motion.a>
 
           <motion.p
-            className="text-neutral-500 mt-4.5 text-center text-xs"
+            className="text-neutral-400 mt-4.5 text-center text-xs"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3, delay: 0.3 }}
@@ -180,7 +180,7 @@ export const SyncProgress = ({ isLoading = false, loadingMessage = "Loading..." 
     return (
       <OuterModal>
         <motion.div
-          className="flex flex-col items-center justify-center p-6 bg-neutral-900 rounded-md border border-neutral-800 shadow-lg"
+          className="flex flex-col items-center justify-center p-6 glass-strong rounded-2xl"
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
@@ -245,7 +245,7 @@ export const SyncProgress = ({ isLoading = false, loadingMessage = "Loading..." 
           </motion.p>
 
           <motion.p
-            className="text-neutral-500 mt-4.5 text-center text-xs"
+            className="text-neutral-400 mt-4.5 text-center text-xs"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3, delay: 0.3 }}
@@ -279,7 +279,7 @@ export const SyncProgress = ({ isLoading = false, loadingMessage = "Loading..." 
     return (
       <OuterModal>
         <motion.div
-          className="flex flex-col items-center justify-center p-6 bg-neutral-900 rounded-md border border-neutral-800 shadow-lg"
+          className="flex flex-col items-center justify-center p-6 glass-strong rounded-2xl"
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
@@ -330,7 +330,7 @@ export const SyncProgress = ({ isLoading = false, loadingMessage = "Loading..." 
           </motion.p>
 
           <motion.button
-            className="mt-4 px-5 py-4 md:py-2 bg-primary text-primary-foreground rounded-full font-medium text-sm md:text-xs tracking-wide cursor-pointer w-full shadow-lg shadow-zinc-50/50 md:shadow-none md:hover:shadow-lg md:hover:shadow-zinc-50/50 transition-shadow duration-500"
+            className="mt-4 px-5 py-4 md:py-2 nx-btn rounded-full font-medium text-sm md:text-xs tracking-wide cursor-pointer w-full shadow-lg shadow-zinc-50/50 md:shadow-none md:hover:shadow-lg md:hover:shadow-zinc-50/50 transition-shadow duration-500"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             whileHover={{ scale: 1.015 }}
@@ -342,17 +342,17 @@ export const SyncProgress = ({ isLoading = false, loadingMessage = "Loading..." 
           </motion.button>
 
           <motion.div
-            className="flex justify-center gap-6 mt-4 text-[11px] text-neutral-600 font-mono"
+            className="flex justify-center gap-6 mt-4 text-[11px] text-neutral-500 font-mono"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3, delay: 0.35 }}
           >
             <span>
-              RTT <span className="text-neutral-500">{roundTripEstimate.toFixed(0)}ms</span>
+              RTT <span className="text-neutral-400">{roundTripEstimate.toFixed(0)}ms</span>
             </span>
             <span>
               Offset{" "}
-              <span className="text-neutral-500">
+              <span className="text-neutral-400">
                 {offsetEstimate >= 0 ? "+" : ""}
                 {offsetEstimate.toFixed(1)}ms
               </span>
@@ -366,7 +366,7 @@ export const SyncProgress = ({ isLoading = false, loadingMessage = "Loading..." 
   return (
     <OuterModal>
       <motion.div
-        className="flex flex-col items-center justify-center p-6 bg-neutral-900 rounded-md border border-neutral-800 shadow-lg"
+        className="flex flex-col items-center justify-center p-6 glass-strong rounded-2xl"
         initial={{ opacity: 0, y: 5 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
@@ -411,7 +411,7 @@ export const SyncProgress = ({ isLoading = false, loadingMessage = "Loading..." 
         </div>
 
         {/* Debug stats */}
-        <div className="mt-3 w-full font-mono text-[10px] text-neutral-500 leading-relaxed">
+        <div className="mt-3 w-full font-mono text-[10px] text-neutral-400 leading-relaxed">
           <div className="flex justify-between">
             <span>pairs sent</span>
             <span className="text-neutral-400">{probeStats.totalSent}</span>

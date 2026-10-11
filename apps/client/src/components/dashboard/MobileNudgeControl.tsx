@@ -22,12 +22,12 @@ export const MobileNudgeControl = () => {
   return (
     <div>
       <div className="flex items-center justify-between px-4 pt-3">
-        <h2 className="text-xs font-medium uppercase tracking-wider text-neutral-500 flex items-center gap-2">
+        <h2 className="text-xs font-medium uppercase tracking-wider text-neutral-400 flex items-center gap-2">
           <Timer className="h-3.5 w-3.5" />
           <span>Timing Nudge</span>
         </h2>
         <button
-          className="text-[10px] font-mono text-neutral-500 px-2 py-0.5 rounded bg-neutral-800 active:bg-neutral-700 transition-colors"
+          className="text-[10px] font-mono text-neutral-400 px-2 py-0.5 rounded bg-white/8 active:bg-white/15 transition-colors"
           onClick={cycleStep}
         >
           {step}ms step
@@ -37,7 +37,7 @@ export const MobileNudgeControl = () => {
       <div className="px-4 pb-3">
         <div className="flex items-center gap-3 mt-2.5">
           <button
-            className="text-neutral-400 active:text-white transition-colors p-2 rounded-md active:bg-neutral-800"
+            className="text-neutral-400 active:text-white transition-colors p-2 rounded-md active:bg-white/10"
             onClick={() => nudge({ amountMs: -step })}
           >
             <Minus className="h-4 w-4" />
@@ -54,7 +54,7 @@ export const MobileNudgeControl = () => {
           </span>
 
           <button
-            className="text-neutral-400 active:text-white transition-colors p-2 rounded-md active:bg-neutral-800"
+            className="text-neutral-400 active:text-white transition-colors p-2 rounded-md active:bg-white/10"
             onClick={() => nudge({ amountMs: step })}
           >
             <Plus className="h-4 w-4" />

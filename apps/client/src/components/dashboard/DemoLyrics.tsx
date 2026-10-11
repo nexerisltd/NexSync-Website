@@ -69,7 +69,7 @@ export const DemoLyrics = () => {
             {current.text}
           </p>
           {next && currentIdx > 0 && (
-            <p className="text-2xl md:text-4xl font-medium tracking-tight leading-snug text-neutral-500 opacity-55 whitespace-pre-line">
+            <p className="text-2xl md:text-4xl font-medium tracking-tight leading-snug text-neutral-400 opacity-55 whitespace-pre-line">
               {next.text}
             </p>
           )}

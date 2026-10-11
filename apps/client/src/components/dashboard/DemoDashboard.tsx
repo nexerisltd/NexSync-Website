@@ -58,8 +58,8 @@ const DemoTrackSelector = () => {
             className={cn(
               "text-xs font-mono px-3 py-1.5 rounded-full transition-colors cursor-pointer truncate max-w-48",
               isSelected
-                ? "bg-white text-black"
-                : "text-neutral-400 bg-neutral-800 hover:bg-neutral-700 hover:text-neutral-200"
+                ? "bg-primary-500 text-white"
+                : "text-neutral-400 bg-white/8 hover:bg-white/15 hover:text-neutral-200"
             )}
           >
             {extractFileNameFromUrl(source.source.url)}
@@ -89,7 +89,7 @@ export const DemoDashboard = ({ roomId }: DemoDashboardProps) => {
   const isReady = isSynced && !isLoadingAudio;
 
   return (
-    <div className="w-full h-dvh flex flex-col text-white bg-neutral-950">
+    <div className="w-full h-dvh flex flex-col text-white">
       <DemoBeatFlash />
       <TopBar roomId={roomId} />
 

@@ -83,8 +83,8 @@ export const AudioUploaderMinimal = () => {
   return (
     <div
       className={cn(
-        "border border-neutral-700/50 rounded-md mx-2 transition-all overflow-hidden",
-        isDisabled ? "bg-neutral-800/20 opacity-50" : "bg-neutral-800/30 hover:bg-neutral-800/50",
+        "nx-card mx-2 overflow-hidden",
+        isDisabled && "opacity-50",
         isDragging && !isDisabled ? "outline outline-primary-400 outline-dashed" : "outline-none"
       )}
       id="drop_zone"
@@ -96,12 +96,7 @@ export const AudioUploaderMinimal = () => {
     >
       <label htmlFor="audio-upload" className={cn("block w-full", isDisabled ? "" : "cursor-pointer")}>
         <div className="p-3 flex items-center gap-3">
-          <div
-            className={cn(
-              "p-1.5 rounded-md flex-shrink-0",
-              isDisabled ? "bg-neutral-600 text-neutral-400" : "bg-primary-700 text-white"
-            )}
-          >
+          <div className={cn("p-2 rounded-lg flex-shrink-0", isDisabled ? "bg-white/5 text-neutral-400" : "nx-tile")}>
             {isUploading ? <CloudUpload className="h-4 w-4 animate-pulse" /> : <Plus className="h-4 w-4" />}
           </div>
           <div className="flex-1 min-w-0">
@@ -109,7 +104,7 @@ export const AudioUploaderMinimal = () => {
               {isUploading ? "Uploading..." : fileName ? trimFileName(fileName) : "Upload audio"}
             </div>
             {!isUploading && !fileName && (
-              <div className={cn("text-xs truncate", isDisabled ? "text-neutral-500" : "text-neutral-400")}>
+              <div className={cn("text-xs truncate", isDisabled ? "text-neutral-400" : "text-neutral-400")}>
                 {isDisabled ? "Must be an admin to upload" : "Add music to queue"}
               </div>
             )}

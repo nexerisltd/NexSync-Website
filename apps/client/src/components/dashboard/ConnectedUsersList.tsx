@@ -30,7 +30,7 @@ export const ConnectedUsersList = () => {
     <TooltipProvider>
       <div className="">
         <div className="flex items-center justify-between px-4 pt-3">
-          <div className="flex items-center gap-2 text-neutral-500">
+          <div className="flex items-center gap-2 text-neutral-400">
             <Users className="h-3.5 w-3.5" />
             <h2 className="text-xs font-medium uppercase tracking-wider">Connected Users</h2>
           </div>
@@ -54,7 +54,7 @@ export const ConnectedUsersList = () => {
 
         <div className="px-4 pb-3">
           {clients.length === 0 ? (
-            <div className="text-center py-8 text-neutral-500 text-xs">No other users connected</div>
+            <div className="text-center py-8 text-neutral-400 text-xs">No other users connected</div>
           ) : (
             <div className="space-y-2">
               {/* List of connected users - Constrained height */}

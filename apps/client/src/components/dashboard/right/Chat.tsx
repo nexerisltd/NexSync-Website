@@ -179,7 +179,7 @@ export const Chat = () => {
               >
                 <MessageCircle className="w-12 h-12 text-neutral-700 mb-3" />
                 <h3 className="text-neutral-400 text-sm font-medium mb-1">No messages yet</h3>
-                <p className="text-neutral-600 text-xs">Start the conversation</p>
+                <p className="text-neutral-500 text-xs">Start the conversation</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -201,7 +201,7 @@ export const Chat = () => {
                   {/* Time divider */}
                   {showTimestamp && (
                     <div className="flex items-center justify-center py-1">
-                      <span className="text-[10px] text-neutral-500 font-medium">
+                      <span className="text-[10px] text-neutral-400 font-medium">
                         {formatChatTimestamp(group[0].timestamp)}
                       </span>
                     </div>
@@ -211,7 +211,7 @@ export const Chat = () => {
                   <div className={cn("flex flex-col min-w-0 w-full", isOwnMessage ? "items-end" : "items-start")}>
                     {/* Sender name (only for others' messages and first message in group) */}
                     {!isOwnMessage && (
-                      <span className="text-[10px] text-neutral-500 ml-1 mb-0.5">
+                      <span className="text-[10px] text-neutral-400 ml-1 mb-0.5">
                         {(() => {
                           const username = getUserName(group[0].clientId, group[0].username);
                           const countryCode = group[0].countryCode;
@@ -251,7 +251,7 @@ export const Chat = () => {
                                   ? "bg-sky-700 text-white"
                                   : isOwnMessage
                                     ? "bg-green-700 text-white"
-                                    : "bg-neutral-800 text-neutral-200",
+                                    : "bg-white/8 text-neutral-200",
                                 // Corner rounding for message bubbles
                                 isSingle
                                   ? "rounded-2xl"
@@ -312,10 +312,7 @@ export const Chat = () => {
       </AnimatePresence>
 
       {/* Input Area - Fixed at bottom */}
-      <div
-        ref={inputAreaRef}
-        className="absolute bottom-0 left-0 right-0 border-t border-neutral-800/50 p-2 pt-3 bg-neutral-900 z-10"
-      >
+      <div ref={inputAreaRef} className="absolute bottom-0 left-0 right-0 glass-flat p-2 pt-3 z-10">
         <div className="flex items-end gap-2">
           <div className="flex-1 relative">
             <textarea
@@ -327,9 +324,9 @@ export const Chat = () => {
               onCompositionEnd={() => setIsComposing(false)}
               placeholder="Message"
               className={cn(
-                "w-full resize-none rounded-2xl bg-neutral-800/50 px-4 py-2 text-base sm:text-sm",
-                "placeholder:text-neutral-500 text-neutral-100",
-                "border border-neutral-700/50",
+                "w-full resize-none rounded-2xl bg-white/6 px-4 py-2 text-base sm:text-sm",
+                "placeholder:text-neutral-400 text-neutral-100",
+                "border border-white/10",
                 "focus:outline-none",
                 "field-sizing-content max-h-[120px] overflow-auto",
                 "scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent"

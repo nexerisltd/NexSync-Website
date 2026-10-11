@@ -104,7 +104,7 @@ export const Join = () => {
                 <motion.div className="size-2 bg-green-500 rounded-full" />
                 <motion.div className="absolute size-2.5 bg-green-500/30 rounded-full animate-ping" />
               </motion.div>
-              <span className="text-xs text-neutral-500 ml-0.5">
+              <span className="text-xs text-neutral-400 ml-0.5">
                 {numActiveUsers} {numActiveUsers === 1 ? "person" : "people"} listening now
               </span>
             </motion.div>
@@ -173,7 +173,7 @@ export const Join = () => {
                           key={index}
                           index={index}
                           className="w-9 h-10 text-base bg-white/5 border-white/15 transition-all duration-200 
-                          focus-within:border-primary/70 focus-within:bg-neutral-800 focus-within:ring-1 focus-within:ring-primary/30"
+                          focus-within:border-primary/70 focus-within:bg-white/10 focus-within:ring-1 focus-within:ring-primary/30"
                         />
                       ))}
                     </InputOTPGroup>
@@ -227,7 +227,7 @@ export const Join = () => {
                 type="button"
                 onClick={handleRegenerateName}
                 variant="ghost"
-                className="text-xs text-neutral-500 hover:text-neutral-300 ml-2 h-6 px-2"
+                className="text-xs text-neutral-400 hover:text-neutral-300 ml-2 h-6 px-2"
                 disabled={isJoining || isCreating}
               >
                 Regenerate
@@ -265,7 +265,7 @@ export const Join = () => {
               </motion.button>
 
               {/* <motion.button
-                  className="px-5 py-2 rounded-full font-medium text-sm tracking-wide cursor-pointer w-full hover:shadow-md hover:shadow-zinc-600/40 transition-shadow duration-500 flex items-center justify-center bg-neutral-800 text-white"
+                  className="px-5 py-2 rounded-full font-medium text-sm tracking-wide cursor-pointer w-full hover:shadow-md hover:shadow-zinc-600/40 transition-shadow duration-500 flex items-center justify-center bg-white/8 text-white"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   whileHover={{
@@ -295,7 +295,7 @@ export const Join = () => {
           </form>
 
           <motion.p
-            className="text-neutral-500 mt-5 text-center text-xs leading-relaxed"
+            className="text-neutral-400 mt-5 text-center text-xs leading-relaxed"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.4 }}
@@ -308,7 +308,7 @@ export const Join = () => {
             <>
               {/* Divider */}
               <motion.div
-                className="w-full h-px bg-neutral-800 my-4"
+                className="w-full h-px bg-white/8 my-4"
                 initial={{ opacity: 0, scaleX: 0 }}
                 animate={{ opacity: 1, scaleX: 1 }}
                 transition={{ duration: 0.4, delay: 0.5 }}
@@ -330,7 +330,7 @@ export const Join = () => {
                     <span>Join Community</span>
                   </a>
                 )}
-                {SOCIAL_LINKS.discord && SOCIAL_LINKS.github && <div className="w-px h-4 bg-neutral-700" />}
+                {SOCIAL_LINKS.discord && SOCIAL_LINKS.github && <div className="w-px h-4 bg-white/12" />}
                 {SOCIAL_LINKS.github && (
                   <a
                     href={SOCIAL_LINKS.github}

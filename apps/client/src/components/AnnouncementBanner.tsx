@@ -38,7 +38,7 @@ export const AnnouncementBanner = () => {
         </div>
         <button
           onClick={() => setShowBanner(false)}
-          className="hidden sm:block absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-neutral-700/50 rounded-md transition-colors"
+          className="hidden sm:block absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-white/15 rounded-md transition-colors"
           aria-label="Close announcement"
         >
           <X className="w-4 h-4" />

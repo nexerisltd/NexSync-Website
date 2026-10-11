@@ -69,7 +69,7 @@ export const RoomQRCode = () => {
         <span className="text-sm font-medium">QR</span>
       </button>
       <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
-        <DialogContent className="backdrop-blur-md bg-neutral-900/80 border border-neutral-800/60 shadow-xl rounded-xl transition-all duration-200">
+        <DialogContent className="rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base font-medium">
               <QrCode size={18} className="text-neutral-400" />
@@ -79,7 +79,7 @@ export const RoomQRCode = () => {
               Scan QR code to join room {roomId}
             </DialogDescription> */}
           </DialogHeader>
-          <Separator className="my-0 bg-neutral-800/50" />
+          <Separator className="my-0 bg-white/6" />
           <div className="flex flex-col items-center space-y-6 pb-6">
             {/* Domain and Room Code Display */}
             <div className="w-full text-center space-y-2">
@@ -87,7 +87,7 @@ export const RoomQRCode = () => {
                 {typeof window !== "undefined" ? window.location.host : "nexsync"}
               </div>
 
-              <div className="text-3xl font-bold text-white bg-neutral-800/50 border border-neutral-700/50 rounded-lg px-8 py-2 inline-block">
+              <div className="text-3xl font-bold text-white bg-white/6 border border-white/10 rounded-lg px-8 py-2 inline-block">
                 {roomId}
               </div>
             </div>
@@ -108,14 +108,14 @@ export const RoomQRCode = () => {
             {IS_SECURE_CONTEXT ? (
               <button
                 onClick={handleCopyUrl}
-                className="w-full flex items-center justify-between px-4 py-3 bg-neutral-800/50 hover:bg-neutral-800/70 border border-neutral-700/50 rounded-lg transition-all duration-200 group cursor-pointer"
+                className="w-full flex items-center justify-between px-4 py-3 bg-white/6 hover:bg-white/10 border border-white/10 rounded-lg transition-all duration-200 group cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <div className="text-neutral-400">
                     <Link size={16} />
                   </div>
                   <div className="flex flex-col items-start">
-                    <span className="text-xs text-neutral-500 uppercase tracking-wide">Full URL</span>
+                    <span className="text-xs text-neutral-400 uppercase tracking-wide">Full URL</span>
                     <span className="text-sm font-mono text-white truncate max-w-[50vw]">{roomUrl}</span>
                   </div>
                 </div>
@@ -148,7 +148,7 @@ export const RoomQRCode = () => {
                 </div>
               </button>
             ) : (
-              <div className="w-full px-4 py-3 bg-neutral-800/50 border border-neutral-700/50 rounded-lg">
+              <div className="w-full px-4 py-3 bg-white/6 border border-white/10 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Link size={16} className="text-neutral-400 shrink-0" />
                   <span className="text-sm font-mono text-white select-all break-all">{roomUrl}</span>

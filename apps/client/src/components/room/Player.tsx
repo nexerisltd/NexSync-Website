@@ -208,7 +208,7 @@ export const Player = () => {
           </button>
           <button
             className={cn(
-              "bg-white text-black rounded-full p-3 md:p-2 hover:scale-105 transition-transform cursor-pointer duration-200 focus:outline-none",
+              "nx-btn rounded-full p-3 md:p-2 hover:scale-105 transition-transform cursor-pointer duration-200 focus:outline-none",
               !canMutate && "opacity-50 cursor-not-allowed"
             )}
             onClick={handlePlay}

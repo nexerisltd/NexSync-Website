@@ -32,10 +32,7 @@ export const AudioControls = () => {
 
       <div className="space-y-2">
         <motion.div
-          className={cn(
-            "bg-neutral-800/20 rounded-md p-3 hover:bg-neutral-800/30 transition-colors",
-            !canMutate && "opacity-50"
-          )}
+          className={cn("bg-white/4 rounded-md p-3 hover:bg-white/10 transition-colors", !canMutate && "opacity-50")}
         >
           <div className="flex justify-between items-center">
             <div className="text-xs text-neutral-300 flex items-center gap-1.5">
@@ -52,7 +49,7 @@ export const AudioControls = () => {
                 Start
               </Button>
               <Button
-                className="text-xs px-3 py-1 h-auto bg-neutral-700/60 hover:bg-neutral-700 text-white"
+                className="text-xs px-3 py-1 h-auto bg-white/8 hover:bg-white/15 text-white"
                 size="sm"
                 onClick={handleStopSpatialAudio}
                 disabled={isLoadingAudio || !canMutate}

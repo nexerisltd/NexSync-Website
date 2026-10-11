@@ -63,7 +63,7 @@ export const SpatialGainMeter = () => {
       <div className="text-xs font-mono text-neutral-400 pr-2.5">{gainPercentage}%</div>
 
       {/* Visual gain meter */}
-      <div className="relative h-3 w-full bg-neutral-800/60 rounded-full overflow-hidden flex items-center px-0.5">
+      <div className="relative h-3 w-full bg-white/6 rounded-full overflow-hidden flex items-center px-0.5">
         <motion.div
           className="absolute h-1.5 rounded-full"
           initial={{ width: 0 }}

@@ -8,7 +8,7 @@ const Links = ({ items }: { items: readonly Person[] }) => (
   <>
     {items.map((item, i) => (
       <span key={item.url}>
-        {i > 0 && <span className="px-1 text-neutral-600">×</span>}
+        {i > 0 && <span className="px-1 text-neutral-500">×</span>}
         <a
           href={item.url}
           target="_blank"
@@ -24,7 +24,7 @@ const Links = ({ items }: { items: readonly Person[] }) => (
 
 const Row = ({ label, children }: { label: string; children: ReactNode }) => (
   <div className="leading-relaxed">
-    <span className="text-neutral-500">{label}: </span>
+    <span className="text-neutral-400">{label}: </span>
     {children}
   </div>
 );
@@ -34,7 +34,7 @@ export const Credits = ({ compact = false, className }: { compact?: boolean; cla
   <div
     className={cn(
       "text-neutral-400",
-      compact ? "px-4 pt-3 pb-1 text-[11px] border-t border-neutral-800/50" : "text-center text-xs",
+      compact ? "px-4 pt-3 pb-1 text-[11px] border-t border-white/10" : "text-center text-xs",
       className
     )}
   >

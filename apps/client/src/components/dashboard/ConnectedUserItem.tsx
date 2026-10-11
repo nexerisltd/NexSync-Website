@@ -63,7 +63,7 @@ export const ConnectedUserItem = memo<ConnectedUserItemProps>(({ client, isCurre
     <div className="relative">
       <Avatar className="h-8 w-8">
         <AvatarImage src={client.location?.flagSvgURL} className="object-cover w-full h-full" />
-        <AvatarFallback className={isCurrentUser ? "bg-primary-600" : "bg-neutral-600"}>
+        <AvatarFallback className={isCurrentUser ? "bg-primary-600" : "bg-white/10"}>
           {client.username
             .split("-")
             .map((part) => part[0])
@@ -143,7 +143,7 @@ export const ConnectedUserItem = memo<ConnectedUserItemProps>(({ client, isCurre
       {isAdmin && !isCurrentUser && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-neutral-700/50">
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-white/15">
               <MoreVertical className="h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>

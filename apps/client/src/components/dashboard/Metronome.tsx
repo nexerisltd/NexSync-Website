@@ -68,8 +68,8 @@ export const MetronomeButton = () => {
       className={cn(
         "text-[10px] font-mono px-2 py-0.5 rounded transition-colors cursor-pointer flex items-center gap-1",
         isMetronomeActive
-          ? "bg-white text-black"
-          : "text-neutral-500 bg-neutral-800 hover:bg-neutral-700 hover:text-neutral-300"
+          ? "bg-primary-500 text-white"
+          : "text-neutral-400 bg-white/8 hover:bg-white/15 hover:text-neutral-300"
       )}
       onClick={toggleMetronome}
     >

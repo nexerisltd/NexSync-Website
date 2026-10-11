@@ -238,7 +238,7 @@ export function InlineSearch() {
                   <SearchIcon
                     className={cn(
                       "w-full h-full transition-colors duration-200",
-                      canMutate ? "text-neutral-400 group-focus-within:text-white/80" : "text-neutral-600"
+                      canMutate ? "text-neutral-400 group-focus-within:text-white/80" : "text-neutral-500"
                     )}
                   />
                 </motion.div>
@@ -253,11 +253,11 @@ export function InlineSearch() {
             onBlur={() => setIsFocused(false)}
             disabled={!canMutate}
             className={cn(
-              "w-full h-10 pr-24 sm:pr-20 border border-neutral-600/30 rounded-lg text-base sm:text-sm font-normal transition-all duration-200 focus:outline-none truncate",
+              "w-full h-10 pr-24 sm:pr-20 border border-white/10 rounded-lg text-base sm:text-sm font-normal transition-all duration-200 focus:outline-none truncate",
               activeStreamJobs > 0 ? "pl-14" : "pl-10",
               canMutate
                 ? "bg-white/10 hover:bg-white/15 focus:bg-white/15 focus:ring-2 focus:ring-white/80 text-white placeholder:text-neutral-400"
-                : "bg-neutral-800/50 text-neutral-500 placeholder:text-neutral-600 cursor-not-allowed"
+                : "bg-white/6 text-neutral-400 placeholder:text-neutral-500 cursor-not-allowed"
             )}
           />
           <div className="absolute right-1 top-1/2 transform -translate-y-1/2 pointer-events-none w-12 flex items-center justify-center">
@@ -284,8 +284,8 @@ export function InlineSearch() {
                 >
                   <kbd
                     className={cn(
-                      "inline-flex h-6 items-center gap-0.5 rounded border border-neutral-600/50 bg-neutral-700/50 px-2 font-mono text-xs font-medium transition-colors duration-200",
-                      canMutate ? "text-neutral-400" : "text-neutral-600 opacity-50"
+                      "inline-flex h-6 items-center gap-0.5 rounded border border-white/10 bg-white/8 px-2 font-mono text-xs font-medium transition-colors duration-200",
+                      canMutate ? "text-neutral-400" : "text-neutral-500 opacity-50"
                     )}
                   >
                     <span className="text-xs">⌘</span>K
@@ -298,7 +298,7 @@ export function InlineSearch() {
       </form>
 
       {/* Beta Disclaimer */}
-      <div className="mt-2 flex items-center gap-1 text-[10px] font-mono text-neutral-500 ml-0.5">
+      <div className="mt-2 flex items-center gap-1 text-[10px] font-mono text-neutral-400 ml-0.5">
         <ZapIcon className="size-3 text-neutral-400 stroke-1" />
         <span>[EXPERIMENTAL FREE BETA]</span>
       </div>
@@ -311,11 +311,11 @@ export function InlineSearch() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute top-full mt-2 w-full bg-neutral-900/95 backdrop-blur-xl border border-neutral-700/50 rounded-2xl shadow-2xl overflow-hidden z-[60]"
+            className="absolute top-full mt-2 w-full glass-strong rounded-2xl overflow-hidden z-[60]"
           >
             {/* Mobile close button */}
             {isMobile && (
-              <div className="sticky top-0 z-10 bg-neutral-900/95 backdrop-blur-xl border-b border-neutral-800/50">
+              <div className="sticky top-0 z-10 bg-black/20 backdrop-blur-xl border-b border-white/10">
                 <button
                   onClick={handleCloseResults}
                   className="w-full px-4 py-3 flex items-center justify-between text-sm text-neutral-400 hover:text-white transition-colors"
@@ -329,7 +329,7 @@ export function InlineSearch() {
 
             <div
               className={cn(
-                "overflow-y-auto scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-neutral-600/30 scrollbar-track-transparent hover:scrollbar-thumb-neutral-600/50 bg-neutral-900",
+                "overflow-y-auto scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-neutral-600/30 scrollbar-track-transparent hover:scrollbar-thumb-neutral-600/50 bg-white/5",
                 isMobile ? "max-h-[70vh]" : "max-h-[60vh]"
               )}
             >

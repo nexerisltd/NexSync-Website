@@ -66,19 +66,12 @@ export const YoutubePlaylistImport = () => {
 
   return (
     <div
-      className={cn("glass mx-2 mt-2 overflow-hidden rounded-2xl transition-opacity", isDisabled && "opacity-50")}
+      className={cn("nx-card mx-2 mt-2 overflow-hidden", isDisabled && "opacity-50")}
       title={isDisabled ? "Admin-only mode - only admins can import" : undefined}
     >
       <div className="flex flex-col gap-2.5 p-3">
         <div className="flex items-center gap-3">
-          <div
-            className={cn(
-              "flex-shrink-0 rounded-xl p-2",
-              isDisabled
-                ? "bg-white/5 text-neutral-500"
-                : "bg-gradient-to-br from-primary-500 to-violet-500 text-white shadow-lg shadow-primary-700/30"
-            )}
-          >
+          <div className={cn("flex-shrink-0 rounded-lg p-2", isDisabled ? "bg-white/5 text-neutral-400" : "nx-tile")}>
             {isImporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ListMusic className="h-4 w-4" />}
           </div>
           <div className="min-w-0 flex-1">
@@ -89,7 +82,7 @@ export const YoutubePlaylistImport = () => {
                   : "Reading playlist…"
                 : "Import YouTube playlist"}
             </div>
-            <div className={cn("truncate text-xs", isDisabled ? "text-neutral-500" : "text-neutral-400")}>
+            <div className={cn("truncate text-xs", isDisabled ? "text-neutral-400" : "text-neutral-400")}>
               {isDisabled ? "Must be an admin to import" : "Playlist or single song, YouTube or YT Music"}
             </div>
           </div>
@@ -116,7 +109,7 @@ export const YoutubePlaylistImport = () => {
               }}
               disabled={isDisabled || isImporting}
               placeholder="https://music.youtube.com/playlist?list=…"
-              className="w-full rounded-xl border border-white/12 bg-black/20 py-1.5 pr-8 pl-2.5 text-xs text-white outline-none transition-colors placeholder:text-neutral-500 focus:border-primary-400 disabled:cursor-not-allowed"
+              className="w-full rounded-xl border border-white/10 bg-black/20 py-1.5 pr-8 pl-2.5 text-xs text-white outline-none transition-colors placeholder:text-neutral-400 focus:border-primary-400 disabled:cursor-not-allowed"
             />
             <button
               type="button"

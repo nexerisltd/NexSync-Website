@@ -121,7 +121,7 @@ export const LowPassControl = ({ className, isMobile = false }: LowPassControlPr
     return (
       <div className={cn("", className)}>
         <div className="flex items-center justify-between px-4 pt-3">
-          <h2 className="text-xs font-medium uppercase tracking-wider text-neutral-500 flex items-center gap-2">
+          <h2 className="text-xs font-medium uppercase tracking-wider text-neutral-400 flex items-center gap-2">
             <AudioLines className="h-3.5 w-3.5" />
             <span>Low-Pass Filter</span>
           </h2>
@@ -159,17 +159,17 @@ export const LowPassControl = ({ className, isMobile = false }: LowPassControlPr
   return (
     <motion.div
       className={cn(
-        "bg-neutral-800/20 rounded-md p-3 hover:bg-neutral-800/30 transition-colors",
+        "bg-white/4 rounded-md p-3 hover:bg-white/10 transition-colors",
         !canMutate && "opacity-50",
         className
       )}
     >
       <div className="flex items-center justify-between">
         <div className="text-xs text-neutral-300 flex items-center gap-1.5">
-          <AudioLines className={cn("h-3 w-3", isActive ? "text-primary-500" : "text-neutral-500")} />
+          <AudioLines className={cn("h-3 w-3", isActive ? "text-primary-500" : "text-neutral-400")} />
           <span>Low-Pass</span>
         </div>
-        <div className="text-xs text-neutral-500 min-w-[2.5rem] text-right">{freqLabel}</div>
+        <div className="text-xs text-neutral-400 min-w-[2.5rem] text-right">{freqLabel}</div>
       </div>
       <div className="mt-2">
         <Slider

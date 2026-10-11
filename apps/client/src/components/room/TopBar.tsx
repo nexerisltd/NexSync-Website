@@ -6,7 +6,6 @@ import { Crown, Hash, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { FaDiscord, FaGithub } from "react-icons/fa";
-import { DevCollabDialog } from "../DevCollab";
 import { InstallAppButton } from "../InstallAppButton";
 import { SyncProgress } from "../ui/SyncProgress";
 
@@ -52,7 +51,7 @@ export const TopBar = ({ roomId }: TopBarProps) => {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.5"
-                className="text-neutral-600"
+                className="text-neutral-500"
               />
               <motion.circle
                 cx="7"
@@ -100,7 +99,6 @@ export const TopBar = ({ roomId }: TopBarProps) => {
 
         <div className="flex items-center justify-center gap-2.5">
           <InstallAppButton />
-          <DevCollabDialog variant="bar" className="hidden sm:flex" />
           {/* Discord icon (only if NEXT_PUBLIC_DISCORD_URL is set) */}
           {SOCIAL_LINKS.discord && (
             <a

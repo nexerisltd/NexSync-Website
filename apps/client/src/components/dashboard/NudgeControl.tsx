@@ -29,7 +29,7 @@ export const NudgeControl = () => {
     >
       <div className="flex items-center gap-2">
         <button
-          className="text-neutral-400 hover:text-white transition-colors p-1 rounded-sm hover:bg-neutral-800"
+          className="text-neutral-400 hover:text-white transition-colors p-1 rounded-sm hover:bg-white/10"
           onClick={() => nudge({ amountMs: step })}
           title="Play earlier"
         >
@@ -45,14 +45,14 @@ export const NudgeControl = () => {
           {-nudgeOffsetMs}ms
         </span>
         <button
-          className="text-neutral-400 hover:text-white transition-colors p-1 rounded-sm hover:bg-neutral-800"
+          className="text-neutral-400 hover:text-white transition-colors p-1 rounded-sm hover:bg-white/10"
           onClick={() => nudge({ amountMs: -step })}
           title="Play later"
         >
           <ChevronsRight className="h-3.5 w-3.5" />
         </button>
         <button
-          className="text-[9px] font-mono text-neutral-500 size-6 rounded-full bg-neutral-800 hover:bg-neutral-700 hover:text-neutral-300 transition-colors cursor-pointer flex items-center justify-center"
+          className="text-[9px] font-mono text-neutral-400 size-6 rounded-full bg-white/8 hover:bg-white/15 hover:text-neutral-300 transition-colors cursor-pointer flex items-center justify-center"
           onClick={cycleStep}
           title="Click to change step size"
         >

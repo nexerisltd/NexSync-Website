@@ -22,12 +22,12 @@ export const Right = () => {
           </TabsList>
         </div>
         <div className="relative">
-          <Separator className="bg-neutral-800/50" />
+          <Separator className="bg-white/6" />
           {/* <div
             className="
               pointer-events-none
               absolute left-0 right-0 top-full h-3
-              bg-gradient-to-b from-neutral-900/80 to-transparent
+              bg-gradient-to-b from-black/30 to-transparent
               transition-opacity duration-300
             "
           /> */}
