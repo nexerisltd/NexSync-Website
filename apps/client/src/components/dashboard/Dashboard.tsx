@@ -49,7 +49,7 @@ export const Dashboard = ({ roomId }: DashboardProps) => {
           animate="visible"
         >
           {/* --- DESKTOP LAYOUT (lg+) --- */}
-          <div className="hidden lg:flex lg:flex-1 lg:overflow-hidden min-h-0 gap-3 px-3 pt-1 pb-3">
+          <div className="hidden lg:flex lg:flex-1 lg:overflow-hidden min-h-0 gap-3 px-3 pt-3 pb-3">
             <Left className="flex" />
             <Main />
             <Right />

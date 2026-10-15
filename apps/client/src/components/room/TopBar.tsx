@@ -52,7 +52,7 @@ export const TopBar = ({ roomId }: TopBarProps) => {
   // Full bar when synced and not loading
   if (!isLoadingAudio && isSynced) {
     return (
-      <div className="z-50 flex h-14 items-center justify-between gap-3 px-3 glass-flat lg:h-16 lg:bg-none lg:px-6 lg:shadow-none">
+      <div className="z-50 flex h-14 items-center justify-between gap-3 px-3 glass-flat nx-panel lg:mx-3 lg:mt-3 lg:h-[3.75rem] lg:px-5">
         {/* Left: brand, room, live status */}
         <div className="flex min-w-0 items-center gap-3 lg:gap-4">
           <Link href="/" className="flex shrink-0 items-center gap-2 text-white transition-opacity hover:opacity-90">
@@ -82,7 +82,7 @@ export const TopBar = ({ roomId }: TopBarProps) => {
 
         {/* Right: quiet sync stats, then actions */}
         <div className="flex shrink-0 items-center gap-1.5">
-          <div className="mr-2 hidden items-center gap-4 font-mono text-[11px] text-neutral-500 lg:flex">
+          <div className="mr-2 hidden items-center gap-4 rounded-xl border border-white/9 bg-white/5 px-3.5 py-2 font-mono text-[11px] text-neutral-500 lg:flex">
             <span>
               NTP <span className="text-neutral-300">{syncMeasurementCount}/{MAX_NTP_MEASUREMENTS}</span>
             </span>
