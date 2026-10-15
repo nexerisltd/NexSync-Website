@@ -448,3 +448,124 @@
     }
   }
 }
+
+/* =====================================================================
+   NexSync v3 — floating panel layout (matches the reference mockup)
+   .nx-panel   : rounded floating panel (desktop only, mobile stays edge-to-edge)
+   .nx-pill    : rounded stat pill in the top bar
+   .nx-row     : queue row; .nx-row-active = the playing track
+   .nx-num     : square number chip at the start of a queue row
+   .nx-section : small blue section title with icon
+   ===================================================================== */
+@layer components {
+  .nx-label {
+    color: rgb(143 163 199);
+  }
+
+  .nx-section {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: rgb(143 163 199);
+  }
+  .nx-section svg {
+    color: #5aa7ff;
+  }
+
+  .nx-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(120, 170, 255, 0.16);
+    background: rgba(30, 50, 100, 0.28);
+    padding: 0.4rem 0.9rem;
+    font-size: 13px;
+    line-height: 1;
+    color: rgb(226 232 245);
+    white-space: nowrap;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  .nx-pill svg {
+    color: #5aa7ff;
+    flex-shrink: 0;
+  }
+
+  .nx-row {
+    display: flex;
+    align-items: center;
+    border-radius: 0.9rem;
+    border: 1px solid transparent;
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+    transition:
+      background-color 0.2s var(--nx-ease),
+      border-color 0.2s var(--nx-ease),
+      box-shadow 0.2s var(--nx-ease);
+  }
+  .nx-row:hover {
+    background: rgba(120, 170, 255, 0.08);
+  }
+  .nx-row-active,
+  .nx-row-active:hover {
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.32), rgba(37, 99, 235, 0.14));
+    border-color: rgba(76, 150, 255, 0.8);
+    box-shadow:
+      0 0 0 1px rgba(76, 150, 255, 0.2),
+      0 8px 26px rgba(37, 99, 235, 0.2);
+  }
+
+  .nx-num {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 1.75rem;
+    border-radius: 0.6rem;
+    background: rgba(255, 255, 255, 0.07);
+    font-size: 13px;
+    color: rgb(174 185 212);
+    font-variant-numeric: tabular-nums;
+  }
+  .nx-row-active .nx-num {
+    background: rgba(255, 255, 255, 0.12);
+    color: #a9d0ff;
+  }
+
+  .nx-icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 9999px;
+    color: rgb(190 203 230);
+    transition:
+      background-color 0.2s var(--nx-ease),
+      color 0.2s var(--nx-ease);
+  }
+  .nx-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+}
+
+/* Desktop only: the three columns and the player become rounded floating panels */
+@media (min-width: 1024px) {
+  @layer components {
+    .nx-panel {
+      border-radius: 1.5rem;
+      border: 1px solid rgba(120, 170, 255, 0.16);
+      background:
+        radial-gradient(90% 60% at 10% 0%, rgba(80, 140, 255, 0.1), transparent 70%),
+        linear-gradient(180deg, rgba(18, 32, 68, 0.62), rgba(8, 15, 34, 0.62));
+      -webkit-backdrop-filter: blur(22px) saturate(160%);
+      backdrop-filter: blur(22px) saturate(160%);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 18px 50px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+    }
+  }
+}

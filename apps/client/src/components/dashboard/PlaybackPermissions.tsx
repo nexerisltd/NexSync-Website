@@ -38,8 +38,8 @@ export const PlaybackPermissions = () => {
   return (
     <div className="">
       <div className="flex items-center justify-between px-4 pt-3">
-        <h2 className="nx-label flex items-center gap-2">
-          <Play className="h-3.5 w-3.5" />
+        <h2 className="nx-section">
+          <Play className="size-3.5" />
           <span>Playback Permissions</span>
         </h2>
       </div>
@@ -50,13 +50,13 @@ export const PlaybackPermissions = () => {
           onClick={isAdmin ? handleToggle : undefined}
           disabled={!isAdmin}
           className={cn(
-            "relative flex w-full h-8 bg-white/8 rounded-lg p-0.5 mt-2.5 focus:outline-none",
+            "relative flex w-full h-9 bg-black/25 border border-white/8 rounded-xl p-0.5 mt-2.5 focus:outline-none",
             isAdmin ? "cursor-pointer" : "opacity-75"
           )}
         >
           {/* Sliding Background */}
           <motion.div
-            className={cn("absolute inset-y-0.5 w-1/2 rounded-lg bg-primary-600 shadow-sm shadow-black/30")}
+            className={cn("absolute inset-y-0.5 w-1/2 rounded-[0.65rem] bg-gradient-to-b from-[#2f8cff] to-[#1d6df0] shadow-md shadow-blue-900/50")}
             initial={false}
             animate={{
               x: isAdminOnly ? "calc(100% - 4px)" : 0,

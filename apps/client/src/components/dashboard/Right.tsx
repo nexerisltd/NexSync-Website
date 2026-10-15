@@ -1,41 +1,30 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MessageCircle, Rotate3D } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
-import { Separator } from "../ui/separator";
 import { Chat } from "./right/Chat";
 import { SpatialAudio } from "./right/SpatialAudio";
 
+const tabClass =
+  "flex-1 gap-2 rounded-none border-0 border-b-2 border-transparent bg-transparent py-3 text-sm font-medium text-neutral-400 shadow-none transition-colors hover:text-white data-[state=active]:border-primary-400 data-[state=active]:bg-primary-500/10 data-[state=active]:text-white data-[state=active]:shadow-none dark:data-[state=active]:bg-primary-500/10 dark:data-[state=active]:border-primary-400";
+
 export const Right = () => {
   return (
-    <div className="w-full lg:w-80 lg:flex-shrink-0 glass-flat flex flex-col h-full">
-      <Tabs defaultValue="chat" className="flex flex-col h-full">
-        <div className="p-2 pb-0 flex-shrink-0">
-          <TabsList className="bg-white/5 w-full">
-            <TabsTrigger value="chat" className="flex-1">
-              <MessageCircle className="h-3.5 w-3.5 mr-1.5" />
-              Chat
-            </TabsTrigger>
-            <TabsTrigger value="spatial" className="flex-1">
-              <Rotate3D className="h-3.5 w-3.5 mr-1.5" />
-              Spatial
-            </TabsTrigger>
-          </TabsList>
-        </div>
-        <div className="relative">
-          <Separator className="bg-white/6" />
-          {/* <div
-            className="
-              pointer-events-none
-              absolute left-0 right-0 top-full h-3
-              bg-gradient-to-b from-black/30 to-transparent
-              transition-opacity duration-300
-            "
-          /> */}
-        </div>
-        <TabsContent value="chat" className="flex-1 overflow-hidden h-full">
+    <div className="flex h-full w-full flex-col glass-flat nx-panel lg:w-80 lg:flex-shrink-0 xl:w-[21rem]">
+      <Tabs defaultValue="chat" className="flex h-full min-h-0 flex-col gap-0">
+        <TabsList className="h-auto w-full shrink-0 gap-0 rounded-none border-b border-white/8 bg-transparent p-0">
+          <TabsTrigger value="chat" className={tabClass}>
+            <MessageCircle className="size-4" />
+            Chat
+          </TabsTrigger>
+          <TabsTrigger value="spatial" className={tabClass}>
+            <Rotate3D className="size-4" />
+            Spatial
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="chat" className="min-h-0 flex-1 overflow-hidden">
           <Chat />
         </TabsContent>
-        <TabsContent value="spatial" className="flex-1 overflow-auto h-full">
+        <TabsContent value="spatial" className="min-h-0 flex-1 overflow-auto">
           <ScrollArea className="h-full">
             <SpatialAudio />
           </ScrollArea>

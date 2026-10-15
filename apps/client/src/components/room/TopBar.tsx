@@ -3,16 +3,27 @@ import { SOCIAL_LINKS } from "@/constants";
 import { audioContextManager } from "@/lib/audioContextManager";
 import { MAX_NTP_MEASUREMENTS, useGlobalStore } from "@/store/global";
 import { useRoomTotals } from "@/store/roomTotals";
-import { Crown, Hash, Users } from "lucide-react";
+import { Activity, ChevronDown, Clock, Crown, Headphones, Link2, LogOut, Radio, Users, Wifi } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { FaDiscord, FaGithub } from "react-icons/fa";
+import { toast } from "sonner";
 import { InstallAppButton } from "../InstallAppButton";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { SyncProgress } from "../ui/SyncProgress";
 
 interface TopBarProps {
   roomId: string;
 }
+
+const initialsOf = (name: string) =>
+  name
+    .split("-")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
 export const TopBar = ({ roomId }: TopBarProps) => {
   const isLoadingAudio = useGlobalStore((state) => state.isInitingSystem);
@@ -24,105 +35,131 @@ export const TopBar = ({ roomId }: TopBarProps) => {
   const clockOffset = useGlobalStore((state) => state.offsetEstimate);
   const syncMeasurementCount = useGlobalStore((state) => state.syncMeasurements.length);
 
-  // Get current user from global store to check admin status
   const currentUser = useGlobalStore((state) => state.currentUser);
   const isAdmin = currentUser?.isAdmin || false;
 
-  // Show minimal nav bar when synced and not loading
+  const copyRoomLink = async () => {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("admin");
+      await navigator.clipboard.writeText(url.toString());
+      toast.success("Room link copied");
+    } catch {
+      toast.error("Couldn't copy the link — use the QR button in the sidebar");
+    }
+  };
+
+  // Full bar when synced and not loading
   if (!isLoadingAudio && isSynced) {
     return (
-      <div className="h-9 glass-flat z-50 flex items-center justify-between px-4">
-        <div className="flex items-center space-x-4 text-xs text-neutral-400 py-2 md:py-0">
-          {isAdmin && (
-            <div className="flex items-center">
-              <Crown className="h-3 w-3 text-green-500" fill="currentColor" />
-            </div>
-          )}
-          <Link href="/" className="flex items-center gap-1.5 font-medium hover:text-white transition-colors">
+      <div className="z-50 flex h-14 items-center justify-between gap-3 px-3 glass-flat lg:h-[4.5rem] lg:bg-none lg:px-6 lg:shadow-none">
+        {/* Left: brand + room + live stats */}
+        <div className="flex min-w-0 items-center gap-2 lg:gap-3">
+          <Link href="/" className="mr-1 flex shrink-0 items-center gap-2.5 text-white transition-opacity hover:opacity-90">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="" className="size-4" />
-            NexSync
+            <img src="/logo.png" alt="" className="size-8 lg:size-10" />
+            <span className="hidden text-lg font-semibold tracking-tight sm:inline lg:text-xl">NexSync</span>
           </Link>
 
-          {/* NTP Measurements Indicator */}
-          <div className="items-center hidden md:flex">
-            <motion.svg width="14" height="14" viewBox="0 0 14 14" className="mr-1">
-              <circle
-                cx="7"
-                cy="7"
-                r="5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                className="text-neutral-500"
-              />
-              <motion.circle
-                cx="7"
-                cy="7"
-                r="5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                className="text-green-500"
-                strokeDasharray={`${(syncMeasurementCount / MAX_NTP_MEASUREMENTS) * 31.4} 31.4`}
-                strokeLinecap="round"
-                transform="rotate(-90 7 7)"
-                initial={{ strokeDasharray: "0 31.4" }}
-                animate={{
-                  strokeDasharray: `${(syncMeasurementCount / MAX_NTP_MEASUREMENTS) * 31.4} 31.4`,
-                }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-              />
-            </motion.svg>
-            <span className="text-xs">
-              {syncMeasurementCount}/{MAX_NTP_MEASUREMENTS}
+          <span className="nx-pill" title="Room code">
+            <Radio className="size-4" />
+            Room {roomId}
+          </span>
+
+          <span className="nx-pill hidden xl:inline-flex" title="Clock-sync measurements">
+            <Activity className="size-4" />
+            {syncMeasurementCount}/{MAX_NTP_MEASUREMENTS}
+          </span>
+
+          <span className="nx-pill" title="Listeners in this room">
+            <Users className="size-4" />
+            {connectedClientCount} {connectedClientCount === 1 ? "User" : "Users"}
+          </span>
+
+          {isAdmin && (
+            <span className="nx-pill hidden md:inline-flex" title="You can control playback">
+              <Crown className="size-4 !text-yellow-400" fill="currentColor" />
+              Admin
             </span>
-          </div>
-          <div className="flex items-center">
-            <Hash size={12} className="mr-1" />
-            <span className="flex items-center">{roomId}</span>
-          </div>
-          <div className="flex items-center">
-            <Users size={12} className="mr-1" />
-            <span className="flex items-center">
-              <span className="mr-1.5">
-                {connectedClientCount} {connectedClientCount === 1 ? "user" : "users"}
-              </span>
-            </span>
-          </div>
-          {/* Hide separator on small screens */}
-          <div className="hidden md:block">|</div>
-          {/* Hide Offset/RTT on small screens */}
-          <div className="hidden md:flex items-center space-x-2">
-            <span>Offset: {clockOffset.toFixed(2)}ms</span>
-            <span>RTT: {roundTripEstimate.toFixed(2)}ms</span>
-            <span>OL: {((audioContextManager.getContext().outputLatency ?? 0) * 1000).toFixed(0)}ms</span>
-          </div>
+          )}
+
+          <span className="nx-pill hidden lg:inline-flex" title="Clock offset to the server">
+            <Clock className="size-4" />
+            Offset: {clockOffset.toFixed(2)}ms
+          </span>
+          <span className="nx-pill hidden lg:inline-flex" title="Round-trip time to the server">
+            <Wifi className="size-4" />
+            RTT: {roundTripEstimate.toFixed(2)}ms
+          </span>
+          <span className="nx-pill hidden xl:inline-flex" title="Audio output latency of this device">
+            <Headphones className="size-4" />
+            OL: {((audioContextManager.getContext().outputLatency ?? 0) * 1000).toFixed(0)}ms
+          </span>
         </div>
 
-        <div className="flex items-center justify-center gap-2.5">
+        {/* Right: install, social, account */}
+        <div className="flex shrink-0 items-center gap-1.5">
           <InstallAppButton />
-          {/* Discord icon (only if NEXT_PUBLIC_DISCORD_URL is set) */}
           {SOCIAL_LINKS.discord && (
             <a
               href={SOCIAL_LINKS.discord}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-neutral-400 hover:text-white transition-colors"
+              className="nx-icon-btn hidden sm:inline-grid"
+              aria-label="Discord"
             >
-              <FaDiscord className="size-[17px]" />
+              <FaDiscord className="size-[18px]" />
             </a>
           )}
-          {/* GitHub icon (only if NEXT_PUBLIC_GITHUB_URL is set) */}
           {SOCIAL_LINKS.github && (
             <a
               href={SOCIAL_LINKS.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-neutral-400 hover:text-white transition-colors"
+              className="nx-icon-btn hidden sm:inline-grid"
+              aria-label="GitHub"
             >
-              <FaGithub className="size-4" />
+              <FaGithub className="size-[18px]" />
             </a>
+          )}
+
+          {currentUser && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="ml-1 flex items-center gap-1.5 rounded-full p-0.5 pr-1.5 transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400/60"
+                  aria-label="Account menu"
+                >
+                  <Avatar className="size-9 ring-2 ring-white/15">
+                    <AvatarImage src={currentUser.location?.flagSvgURL} className="h-full w-full object-cover" />
+                    <AvatarFallback className="bg-primary-600 text-xs font-semibold">
+                      {initialsOf(currentUser.username)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <ChevronDown className="size-3.5 text-neutral-400" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="flex flex-col gap-0.5">
+                  <span className="truncate text-sm font-semibold">{currentUser.username}</span>
+                  <span className="text-[11px] font-normal text-neutral-400">
+                    {isAdmin ? "Admin" : "Listener"} · Room {roomId}
+                  </span>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="gap-2 text-sm" onClick={() => void copyRoomLink()}>
+                  <Link2 className="size-4" />
+                  Copy room link
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="gap-2 text-sm">
+                  <Link href="/">
+                    <LogOut className="size-4" />
+                    Leave room
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>

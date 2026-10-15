@@ -5,19 +5,19 @@ import { InlineSearch } from "./InlineSearch";
 
 export const Main = () => {
   return (
-    <motion.div
-      className={cn(
-        "w-full lg:flex-1 overflow-y-auto bg-transparent h-full",
-        "scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20"
-      )}
-    >
-      <motion.div className="p-6 pt-4">
-        {/* <h1 className="text-xl font-semibold mb-8">BeatSync</h1> */}
-        <div className="mb-6">
-          <InlineSearch />
-        </div>
-        <Queue className="mb-8" />
-      </motion.div>
+    <motion.div className={cn("flex h-full min-h-0 w-full min-w-0 flex-col bg-transparent nx-panel lg:flex-1")}>
+      {/* Search stays pinned; only the queue scrolls */}
+      <div className="relative z-20 shrink-0 p-4 pb-2 lg:p-5 lg:pb-2">
+        <InlineSearch />
+      </div>
+      <div
+        className={cn(
+          "min-h-0 flex-1 overflow-y-auto px-3 pb-4 lg:px-4",
+          "scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/20"
+        )}
+      >
+        <Queue />
+      </div>
     </motion.div>
   );
 };

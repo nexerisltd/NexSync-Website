@@ -5,7 +5,6 @@ import { useRoomTotals } from "@/store/roomTotals";
 import { TooltipPortal } from "@radix-ui/react-tooltip";
 import { Navigation, Users } from "lucide-react";
 import { useMemo } from "react";
-import { Badge } from "../ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 import { ConnectedUserItem } from "./ConnectedUserItem";
 
@@ -32,10 +31,10 @@ export const ConnectedUsersList = () => {
     <TooltipProvider>
       <div className="">
         <div className="flex items-center justify-between px-4 pt-3">
-          <div className="flex items-center gap-2 text-neutral-400">
-            <Users className="h-3.5 w-3.5" />
-            <h2 className="text-xs font-medium uppercase tracking-wider">Connected Users</h2>
-          </div>
+          <h2 className="nx-section">
+            <Users className="size-3.5" />
+            Connected Users
+          </h2>
           <div className="flex items-center gap-2">
             <Tooltip delayDuration={300}>
               <TooltipTrigger asChild>
@@ -50,7 +49,10 @@ export const ConnectedUsersList = () => {
                 </TooltipContent>
               </TooltipPortal>
             </Tooltip>
-            <Badge variant="outline">{Math.max(connectedTotal, clients.length)}</Badge>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/6 px-2 py-0.5 text-xs font-medium text-white">
+              <span className="size-1.5 rounded-full bg-green-400" />
+              {Math.max(connectedTotal, clients.length)}
+            </span>
           </div>
         </div>
 

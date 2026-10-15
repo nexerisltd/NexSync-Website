@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { useChatStore } from "@/store/chat";
 import { useGlobalStore } from "@/store/global";
 import { formatChatTimestamp } from "@/utils/time";
-import { ChevronDown, MessageCircle } from "lucide-react";
+import { ChevronDown, MessageCircle, SendHorizontal } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -177,9 +177,16 @@ export const Chat = () => {
                 }}
                 className="absolute inset-0 flex flex-col items-center justify-center px-4"
               >
-                <MessageCircle className="w-12 h-12 text-neutral-700 mb-3" />
-                <h3 className="text-neutral-400 text-sm font-medium mb-1">No messages yet</h3>
-                <p className="text-neutral-500 text-xs">Start the conversation</p>
+                <div className="relative mb-4 grid size-20 place-items-center">
+                  <div className="absolute inset-0 rounded-full bg-primary-500/20 blur-2xl" />
+                  <MessageCircle className="relative size-14 text-primary-300" strokeWidth={1.4} />
+                  <MessageCircle
+                    className="absolute -right-1 bottom-0 size-9 fill-primary-500/30 text-primary-400"
+                    strokeWidth={1.4}
+                  />
+                </div>
+                <h3 className="text-neutral-200 text-sm font-semibold mb-1">No messages yet</h3>
+                <p className="text-neutral-400 text-xs">Start the conversation</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -250,7 +257,7 @@ export const Chat = () => {
                                 msg.isCreator
                                   ? "bg-sky-700 text-white"
                                   : isOwnMessage
-                                    ? "bg-green-700 text-white"
+                                    ? "bg-gradient-to-br from-[#2f8cff] to-[#1d62e0] text-white"
                                     : "bg-white/8 text-neutral-200",
                                 // Corner rounding for message bubbles
                                 isSingle
@@ -302,7 +309,7 @@ export const Chat = () => {
               damping: 30,
             }}
             onClick={() => scrollToBottom()}
-            className="absolute left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 px-3 py-1.5 bg-green-800 hover:bg-green-700 text-white text-xs font-medium rounded-full shadow-lg shadow-green-900/40 transition-colors duration-500"
+            className="absolute left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 px-3 py-1.5 bg-primary-700 hover:bg-primary-600 text-white text-xs font-medium rounded-full shadow-lg shadow-blue-900/40 transition-colors duration-500"
             style={{ bottom: `${inputAreaHeight + 16}px` }}
           >
             <ChevronDown className="w-3 h-3" />
@@ -312,7 +319,7 @@ export const Chat = () => {
       </AnimatePresence>
 
       {/* Input Area - Fixed at bottom */}
-      <div ref={inputAreaRef} className="absolute bottom-0 left-0 right-0 glass-flat p-2 pt-3 z-10">
+      <div ref={inputAreaRef} className="absolute bottom-0 left-0 right-0 border-t border-white/8 bg-black/20 p-3 z-10">
         <div className="flex items-end gap-2">
           <div className="flex-1 relative">
             <textarea
@@ -322,11 +329,11 @@ export const Chat = () => {
               onKeyDown={handleKeyDown}
               onCompositionStart={() => setIsComposing(true)}
               onCompositionEnd={() => setIsComposing(false)}
-              placeholder="Message"
+              placeholder="Message..."
               className={cn(
-                "w-full resize-none rounded-2xl bg-white/6 px-4 py-2 text-base sm:text-sm",
+                "w-full resize-none rounded-3xl bg-white/6 px-4 py-2.5 text-base sm:text-sm",
                 "placeholder:text-neutral-400 text-neutral-100",
-                "border border-white/10",
+                "border border-white/10 focus:border-primary-400/60",
                 "focus:outline-none",
                 "field-sizing-content max-h-[120px] overflow-auto",
                 "scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent"
@@ -334,6 +341,15 @@ export const Chat = () => {
               rows={1}
             />
           </div>
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={!message.trim()}
+            aria-label="Send message"
+            className="nx-btn grid size-10 shrink-0 place-items-center rounded-full"
+          >
+            <SendHorizontal className="size-4" />
+          </button>
         </div>
       </div>
     </div>

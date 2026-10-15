@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { useCanMutate, useGlobalStore } from "@/store/global";
 import { sendWSRequest } from "@/utils/ws";
 import { ClientActionEnum } from "@beatsync/shared";
-import { ArrowDown, Search as SearchIcon, X, ZapIcon } from "lucide-react";
+import { ArrowDown, FlaskConical, Search as SearchIcon, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
@@ -176,7 +176,7 @@ export function InlineSearch() {
       {/* Search Input */}
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="relative group">
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5">
+          <div className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5">
             <AnimatePresence mode="wait">
               {activeStreamJobs > 0 ? (
                 <motion.div
@@ -253,10 +253,10 @@ export function InlineSearch() {
             onBlur={() => setIsFocused(false)}
             disabled={!canMutate}
             className={cn(
-              "w-full h-10 pr-24 sm:pr-20 border border-white/10 rounded-lg text-base sm:text-sm font-normal transition-all duration-200 focus:outline-none truncate",
-              activeStreamJobs > 0 ? "pl-14" : "pl-10",
+              "w-full h-12 pr-24 sm:pr-20 border border-white/12 rounded-full text-base sm:text-sm font-normal transition-all duration-200 focus:outline-none truncate",
+              activeStreamJobs > 0 ? "pl-16" : "pl-12",
               canMutate
-                ? "bg-white/10 hover:bg-white/15 focus:bg-white/15 focus:ring-2 focus:ring-white/80 text-white placeholder:text-neutral-400"
+                ? "bg-white/7 hover:bg-white/10 focus:bg-white/10 focus:border-primary-400/70 focus:ring-2 focus:ring-primary-400/30 text-white placeholder:text-neutral-400"
                 : "bg-white/6 text-neutral-400 placeholder:text-neutral-500 cursor-not-allowed"
             )}
           />
@@ -284,7 +284,7 @@ export function InlineSearch() {
                 >
                   <kbd
                     className={cn(
-                      "inline-flex h-6 items-center gap-0.5 rounded border border-white/10 bg-white/8 px-2 font-mono text-xs font-medium transition-colors duration-200",
+                      "hidden h-6 items-center gap-0.5 rounded border border-white/10 bg-white/8 px-2 font-mono sm:inline-flex text-xs font-medium transition-colors duration-200",
                       canMutate ? "text-neutral-400" : "text-neutral-500 opacity-50"
                     )}
                   >
@@ -298,9 +298,11 @@ export function InlineSearch() {
       </form>
 
       {/* Beta Disclaimer */}
-      <div className="mt-2 flex items-center gap-1 text-[10px] font-mono text-neutral-400 ml-0.5">
-        <ZapIcon className="size-3 text-neutral-400 stroke-1" />
-        <span>[EXPERIMENTAL FREE BETA]</span>
+      <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-primary-400/20 bg-primary-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary-300">
+        <FlaskConical className="size-3" />
+        <span>Experimental</span>
+        <span className="text-primary-400/60">·</span>
+        <span>Free beta</span>
       </div>
 
       {/* Search Results Dropdown */}

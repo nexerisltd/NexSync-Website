@@ -1,6 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { useCanMutate, useGlobalStore } from "@/store/global";
+import { Music2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import LoadDefaultTracksButton from "./LoadDefaultTracksButton";
 import {
@@ -50,7 +51,7 @@ export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
   return (
     <div className={cn("", className)} {...rest}>
       {/* <h2 className="text-xl font-bold mb-2 select-none">Beatsync</h2> */}
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         {audioSources.length > 0 ? (
           canMutate ? (
             <DndContext
@@ -97,13 +98,17 @@ export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="w-full text-center text-neutral-300 select-none flex flex-col items-center justify-center gap-3"
+            className="w-full text-center text-neutral-300 select-none flex flex-col items-center justify-center gap-3 py-16"
           >
+            <div className="grid size-16 place-items-center rounded-3xl bg-primary-500/10 text-primary-300 ring-1 ring-primary-400/20">
+              <Music2 className="size-7" />
+            </div>
             {isInitingSystem ? (
               "Loading tracks..."
             ) : canMutate ? (
               <>
-                <div className="text-sm text-neutral-400">No tracks yet</div>
+                <div className="text-sm text-neutral-300">No tracks yet</div>
+                <div className="max-w-xs text-xs text-neutral-500">Upload audio or import a YouTube playlist from the left.</div>
                 <LoadDefaultTracksButton />
               </>
             ) : (

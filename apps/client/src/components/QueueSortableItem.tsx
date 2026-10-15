@@ -4,16 +4,9 @@ import { sendWSRequest } from "@/utils/ws";
 import { ClientActionEnum } from "@beatsync/shared";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  AlertCircle,
-  GripVertical,
-  Loader2,
-  MinusIcon,
-  // MoreHorizontal, // Keeping for potential future use
-  Pause,
-  Play,
-} from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { AlertCircle, GripVertical, Loader2, MoreHorizontal, Pause, Play, Trash2 } from "lucide-react";
+import { motion } from "motion/react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 
 export const QueueSortableItem = ({
   id,
@@ -44,18 +37,11 @@ export const QueueSortableItem = ({
   const isLoading = sourceState.status === "loading";
   const isError = sourceState.status === "error";
 
-  const handleItemClick = (sourceState: AudioSourceState) => {
-    if (!canMutate) return;
+  // Only tracks whose audio is decoded know their length; the rest show a placeholder
+  const duration = !isLoading && sourceState.status === "loaded" ? getAudioDuration({ url: sourceState.source.url }) : 0;
 
-    // Don't allow interaction with loading or error tracks
-    if (sourceState.status === "loading") {
-      // Could show a toast here if desired
-      return;
-    }
-    if (sourceState.status === "error") {
-      // Could show error details in a toast
-      return;
-    }
+  const togglePlay = () => {
+    if (!canMutate || isLoading || isError) return;
 
     const source = sourceState.source;
     if (source.url === selectedAudioUrl) {
@@ -68,6 +54,18 @@ export const QueueSortableItem = ({
       changeAudioSource(source.url);
       broadcastPlay(0);
     }
+  };
+
+  const removeFromQueue = () => {
+    const socket = useGlobalStore.getState().socket;
+    if (!socket) return;
+    sendWSRequest({
+      ws: socket,
+      request: {
+        type: ClientActionEnum.enum.DELETE_AUDIO_SOURCES,
+        urls: [sourceState.source.url],
+      },
+    });
   };
 
   return (
@@ -88,251 +86,125 @@ export const QueueSortableItem = ({
         transition={
           isDragging
             ? {
-                // Fast animation while dragging
-                layout: {
-                  duration: 0.15,
-                  ease: "backOut",
-                },
-                opacity: {
-                  duration: 0.3,
-                  delay: Math.min(0.05 * index, 0.3),
-                  ease: "easeOut",
-                },
-                y: {
-                  duration: 0.3,
-                  delay: Math.min(0.05 * index, 0.3),
-                  ease: "easeOut",
-                },
+                layout: { duration: 0.15, ease: "backOut" },
+                opacity: { duration: 0.3, delay: Math.min(0.05 * index, 0.3), ease: "easeOut" },
+                y: { duration: 0.3, delay: Math.min(0.05 * index, 0.3), ease: "easeOut" },
               }
             : {
-                // Smooth spring for non-dragged items
-                layout: {
-                  type: "spring",
-                  stiffness: 400,
-                  damping: 45,
-                  mass: 1,
-                },
-                opacity: {
-                  duration: 0.3,
-                  delay: Math.min(0.05 * index, 0.3),
-                  ease: "easeOut",
-                },
-                y: {
-                  duration: 0.3,
-                  delay: Math.min(0.05 * index, 0.3),
-                  ease: "easeOut",
-                },
+                layout: { type: "spring", stiffness: 400, damping: 45, mass: 1 },
+                opacity: { duration: 0.3, delay: Math.min(0.05 * index, 0.3), ease: "easeOut" },
+                y: { duration: 0.3, delay: Math.min(0.05 * index, 0.3), ease: "easeOut" },
               }
         }
         className={cn(
-          "flex items-center pl-2 pr-4 py-3 rounded-md group transition-colors select-none",
-          isSelected ? "text-white hover:bg-white/15" : "text-neutral-300 hover:bg-white/15",
-          !canMutate && "text-white/50",
-          (isLoading || isError) && "opacity-60 cursor-not-allowed",
-          isDragging && "bg-white/8"
+          "nx-row group select-none gap-3 py-2.5 pr-3 pl-2",
+          isSelected && !isLoading && !isError ? "nx-row-active text-white" : "text-neutral-200",
+          !canMutate && "text-white/60",
+          (isLoading || isError) && "cursor-not-allowed opacity-60",
+          canMutate && !isLoading && !isError && "cursor-pointer",
+          isDragging && "bg-white/10"
         )}
-        onClick={() => handleItemClick(sourceState)}
+        onClick={togglePlay}
       >
-        {/* Drag handle - only shown for users who can mutate */}
+        {/* Drag handle - only for users who can reorder */}
         {canMutate && (
           <motion.div
             {...listeners}
-            className="p-1"
-            initial={{ opacity: 0.25 }}
-            animate={{ opacity: isDragging ? 1 : 0.25 }}
+            className="hidden p-0.5 sm:block"
+            initial={{ opacity: 0.2 }}
+            animate={{ opacity: isDragging ? 1 : 0.2 }}
             whileHover={{ opacity: 1 }}
             style={{ cursor: "grab", touchAction: "none" }}
+            onClick={(e) => e.stopPropagation()}
           >
             <GripVertical className="size-4" />
           </motion.div>
         )}
 
-        {/* Track number / Play icon */}
-        <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center relative cursor-default select-none">
-          <AnimatePresence mode="wait">
-            {isLoading ? (
-              <motion.div
-                key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{
-                  opacity: 0,
-                  transition: {
-                    duration: 0.3,
-                    ease: "easeOut",
-                  },
-                }}
-                className="absolute inset-0 flex items-center justify-center"
-              >
-                <Loader2 className="size-4 animate-spin text-neutral-400" />
-              </motion.div>
-            ) : isError ? (
-              <motion.div
-                key="error"
-                initial={{ opacity: 0 }}
-                animate={{
-                  opacity: 1,
-                  transition: {
-                    duration: 0.3,
-                    ease: "easeOut",
-                  },
-                }}
-                className="absolute inset-0 flex items-center justify-center"
-              >
-                <AlertCircle className="size-4 text-red-400" />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="loaded"
-                initial={{ opacity: 0 }}
-                animate={{
-                  opacity: 1,
-                  transition: {
-                    duration: 0.3,
-                    ease: "easeOut",
-                  },
-                }}
-                className="absolute inset-0"
-              >
-                {/* Play/Pause button (shown on hover) */}
-                <button className="text-white text-sm hover:scale-110 transition-transform w-full h-full flex items-center justify-center absolute inset-0 opacity-0 group-hover:opacity-100 select-none">
-                  {isSelected && isPlaying ? (
-                    <Pause className="fill-current size-3.5 stroke-1" />
-                  ) : (
-                    <Play className="fill-current size-3.5" />
-                  )}
-                </button>
-
-                {/* Playing indicator or track number (hidden on hover) */}
-                <div className="w-full h-full flex items-center justify-center group-hover:opacity-0 select-none">
-                  {isPlayingThis ? (
-                    <div className="flex items-end justify-center h-4 w-4 gap-[2px]">
-                      <div className="bg-primary-500 w-[2px] h-[40%] animate-[sound-wave-1_1.2s_ease-in-out_infinite]"></div>
-                      <div className="bg-primary-500 w-[2px] h-[80%] animate-[sound-wave-2_1.4s_ease-in-out_infinite]"></div>
-                      <div className="bg-primary-500 w-[2px] h-[60%] animate-[sound-wave-3_1s_ease-in-out_infinite]"></div>
-                    </div>
-                  ) : (
-                    <span
-                      className={cn(
-                        "text-sm group-hover:opacity-0 select-none",
-                        isSelected ? "text-primary-400" : "text-neutral-400"
-                      )}
-                    >
-                      {index + 1}
-                    </span>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+        {/* Number chip: equalizer while playing, play/pause on hover */}
+        <div className="nx-num relative shrink-0 cursor-default select-none">
+          {isLoading ? (
+            <Loader2 className="size-4 animate-spin text-neutral-400" />
+          ) : isError ? (
+            <AlertCircle className="size-4 text-red-400" />
+          ) : (
+            <>
+              <span className="absolute inset-0 grid place-items-center opacity-0 transition-opacity group-hover:opacity-100">
+                {isPlayingThis ? (
+                  <Pause className="size-3.5 fill-current stroke-1" />
+                ) : (
+                  <Play className="size-3.5 fill-current" />
+                )}
+              </span>
+              <span className="grid place-items-center transition-opacity group-hover:opacity-0">
+                {isPlayingThis ? (
+                  <span className="flex h-3.5 items-end gap-[2px]">
+                    <span className="h-[40%] w-[2px] animate-[sound-wave-1_1.2s_ease-in-out_infinite] bg-primary-400" />
+                    <span className="h-[80%] w-[2px] animate-[sound-wave-2_1.4s_ease-in-out_infinite] bg-primary-400" />
+                    <span className="h-[60%] w-[2px] animate-[sound-wave-3_1s_ease-in-out_infinite] bg-primary-400" />
+                  </span>
+                ) : (
+                  index + 1
+                )}
+              </span>
+            </>
+          )}
         </div>
 
         {/* Track name */}
-        <div className="flex-grow min-w-0 ml-3 select-none">
+        <div className="min-w-0 flex-1 select-none">
           <div
             className={cn(
-              "font-medium text-sm truncate select-none",
-              isSelected && !isLoading ? "text-primary-400" : "",
+              "truncate text-sm font-medium",
+              isSelected && !isLoading && !isError && "text-primary-300",
               isError && "text-red-400",
               isLoading && "opacity-60"
             )}
+            title={extractFileNameFromUrl(sourceState.source.url)}
           >
             {extractFileNameFromUrl(sourceState.source.url)}
-            {isError && sourceState.error && <span className="text-xs text-red-400 ml-2">({sourceState.error})</span>}
+            {isError && sourceState.error && <span className="ml-2 text-xs text-red-400">({sourceState.error})</span>}
           </div>
         </div>
 
-        {/* Duration & Delete Button */}
-        <div className="ml-4 flex items-center gap-2">
-          <motion.div
-            className="text-xs text-neutral-400 select-none min-w-[3rem] text-right"
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-          >
-            {!isLoading && sourceState.status === "loaded" && isSelected ? (
-              <motion.span
-                key="duration"
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-              >
-                {formatTime(getAudioDuration({ url: sourceState.source.url }))}
-              </motion.span>
-            ) : (
-              <motion.span
-                key="placeholder"
-                className="text-neutral-700"
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-              >
-                --:--
-              </motion.span>
-            )}
-          </motion.div>
-
-          {/* Direct delete button */}
-          {canMutate && (
-            <button
-              className="p-1 rounded-full text-neutral-400 hover:text-red-400 transition-colors hover:scale-110 duration-150 focus:outline-none focus:text-red-400 focus:scale-110"
-              onClick={(e) => {
-                e.stopPropagation();
-                const socket = useGlobalStore.getState().socket;
-                if (!socket) return;
-                sendWSRequest({
-                  ws: socket,
-                  request: {
-                    type: ClientActionEnum.enum.DELETE_AUDIO_SOURCES,
-                    urls: [sourceState.source.url],
-                  },
-                });
-              }}
-            >
-              <MinusIcon className="size-4" />
-            </button>
+        {/* Duration */}
+        <div
+          className={cn(
+            "min-w-[3rem] select-none text-right text-xs tabular-nums",
+            isSelected ? "text-primary-200" : "text-neutral-400"
           )}
+        >
+          {duration > 0 ? formatTime(duration) : <span className="text-neutral-600">--:--</span>}
+        </div>
 
-          {/* Dropdown for re-uploading - Commented out for potential future use */}
-          {/* <DropdownMenu>
-          <DropdownMenuTrigger
-            asChild
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button className="p-1 rounded-full text-neutral-400 hover:text-white transition-colors hover:scale-110 duration-150 focus:outline-none focus:text-white focus:scale-110">
+        {/* Row menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              aria-label="Track options"
+              className="rounded-full p-1 text-neutral-400 transition-colors hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400/60"
+            >
               <MoreHorizontal className="size-4" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent
-            side="top"
-            align="center"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <DropdownMenuContent align="end" className="w-44" onClick={(e) => e.stopPropagation()}>
+            <DropdownMenuItem
+              className="gap-2 text-xs"
+              disabled={!canMutate || isLoading || isError}
+              onClick={togglePlay}
+            >
+              {isPlayingThis ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}
+              {isPlayingThis ? "Pause" : "Play"}
+            </DropdownMenuItem>
             {canMutate && (
-              <DropdownMenuItem
-                className="flex items-center gap-2 cursor-pointer text-sm"
-                onClick={() => {
-                  const socket = useGlobalStore.getState().socket;
-                  if (!socket) return;
-                  sendWSRequest({
-                    ws: socket,
-                    request: {
-                      type: ClientActionEnum.enum
-                        .DELETE_AUDIO_SOURCES,
-                      urls: [sourceState.source.url],
-                    },
-                  });
-                }}
-              >
-                <span>Remove from queue</span>
+              <DropdownMenuItem className="gap-2 text-xs text-red-400 focus:text-red-300" onClick={removeFromQueue}>
+                <Trash2 className="size-3.5" />
+                Remove from queue
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>
-        </DropdownMenu> */}
-        </div>
+        </DropdownMenu>
       </motion.div>
     </div>
   );

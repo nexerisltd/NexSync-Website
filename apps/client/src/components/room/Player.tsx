@@ -192,7 +192,7 @@ export const Player = () => {
             <div className="relative">
               <Shuffle className={cn("size-4 relative", isShuffled ? "text-primary-400" : "text-current")} />
               {isShuffled && (
-                <div className="absolute w-1 h-1 bg-green-500 rounded-full bottom-0 top-4.5 left-1/2 transform -translate-x-1/2 translate-y-1/2"></div>
+                <div className="absolute w-1 h-1 bg-primary-400 rounded-full bottom-0 top-4.5 left-1/2 transform -translate-x-1/2 translate-y-1/2"></div>
               )}
             </div>
           </button>
@@ -208,16 +208,16 @@ export const Player = () => {
           </button>
           <button
             className={cn(
-              "nx-btn rounded-full p-3 md:p-2 hover:scale-105 transition-transform cursor-pointer duration-200 focus:outline-none",
+              "nx-btn rounded-full p-3 md:p-3 hover:scale-105 transition-transform cursor-pointer duration-200 focus:outline-none",
               !canMutate && "opacity-50 cursor-not-allowed"
             )}
             onClick={handlePlay}
             disabled={!canMutate}
           >
             {isPlaying ? (
-              <Pause className="w-5 h-5 md:w-4 md:h-4 fill-current stroke-1" />
+              <Pause className="w-5 h-5 md:w-5 md:h-5 fill-current stroke-1" />
             ) : (
-              <Play className="w-5 h-5 md:w-4 md:h-4 fill-current" />
+              <Play className="w-5 h-5 md:w-5 md:h-5 fill-current" />
             )}
           </button>
           <button
@@ -233,7 +233,7 @@ export const Player = () => {
           <button className="text-gray-400 hover:text-white transition-colors cursor-default   hover:scale-105 duration-200">
             <div className="relative">
               <Repeat className="w-4 h-4 relative text-primary-400" />
-              <div className="absolute w-1 h-1 bg-green-500 rounded-full bottom-0 top-4.5 left-1/2 transform -translate-x-1/2 translate-y-1/2"></div>
+              <div className="absolute w-1 h-1 bg-primary-400 rounded-full bottom-0 top-4.5 left-1/2 transform -translate-x-1/2 translate-y-1/2"></div>
             </div>
           </button>
         </div>

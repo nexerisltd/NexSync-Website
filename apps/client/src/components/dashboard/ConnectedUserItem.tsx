@@ -61,7 +61,7 @@ export const ConnectedUserItem = memo<ConnectedUserItemProps>(({ client, isCurre
 
   const avatarContent = (
     <div className="relative">
-      <Avatar className="h-8 w-8">
+      <Avatar className="h-10 w-10 ring-1 ring-white/15">
         <AvatarImage src={client.location?.flagSvgURL} className="object-cover w-full h-full" />
         <AvatarFallback className={isCurrentUser ? "bg-primary-600" : "bg-white/10"}>
           {client.username
@@ -72,20 +72,20 @@ export const ConnectedUserItem = memo<ConnectedUserItemProps>(({ client, isCurre
             .toUpperCase()}{" "}
         </AvatarFallback>
       </Avatar>
-      {/* Admin crown indicator */}
-      {client.isAdmin && (
-        <div className="absolute -top-1 -right-0.5 bg-yellow-500 rounded-full p-0.5">
-          <Crown className="h-2.5 w-2.5 text-yellow-900" fill="currentColor" />
-        </div>
-      )}
+      {/* Online dot */}
+      <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-[#0b1630] bg-green-400" />
     </div>
   );
 
   return (
     <motion.div
       className={cn(
-        "flex items-center gap-2 p-1.5 rounded-md transition-all duration-300 text-sm",
-        client.isCreator ? "bg-sky-500/10" : isCurrentUser ? "bg-primary-400/10" : "bg-transparent"
+        "flex items-center gap-3 p-2 rounded-2xl border transition-all duration-300 text-sm",
+        client.isCreator
+          ? "bg-sky-500/10 border-sky-400/20"
+          : isCurrentUser
+            ? "bg-white/5 border-white/10"
+            : "bg-transparent border-transparent hover:bg-white/5"
       )}
       initial={{ opacity: 0.8 }}
       animate={{
@@ -125,20 +125,23 @@ export const ConnectedUserItem = memo<ConnectedUserItemProps>(({ client, isCurre
           </TooltipPortal>
         </Tooltip>
       )}
-      <div className="flex flex-col min-w-0">
-        <div className="text-xs font-medium truncate">
-          <span>{client.username}</span>
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="truncate text-sm font-semibold text-white">{client.username}</div>
+        <div className="flex items-center gap-1.5 text-[11px] text-neutral-400">
+          <span className="size-1.5 rounded-full bg-green-400" />
+          {isCurrentUser ? "You" : "Connected"}
         </div>
       </div>
-      <Badge
-        variant={client.isCreator ? "default" : isCurrentUser ? "default" : "outline"}
-        className={cn(
-          "ml-auto text-xs shrink-0 min-w-[60px] text-center py-0 h-5",
-          client.isCreator ? "bg-sky-600 text-sky-50" : isCurrentUser ? "bg-primary-600 text-primary-50" : ""
-        )}
-      >
-        {client.isCreator ? "Creator" : isCurrentUser ? "You" : "Connected"}
-      </Badge>
+      {(client.isCreator || client.isAdmin) && (
+        <Badge
+          className={cn(
+            "shrink-0 rounded-full border-0 px-3 py-0 h-6 text-xs font-medium",
+            client.isCreator ? "bg-sky-600 text-sky-50" : "bg-primary-600 text-primary-50"
+          )}
+        >
+          {client.isCreator ? "Creator" : "Admin"}
+        </Badge>
+      )}
       {/* Admin controls dropdown - only show if current user is admin and not targeting self */}
       {isAdmin && !isCurrentUser && (
         <DropdownMenu>
