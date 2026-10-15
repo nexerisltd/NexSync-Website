@@ -66,6 +66,13 @@ export class GlobalManager {
   /**
    * Get the count of active rooms
    */
+  /** Open websocket connections across every room. */
+  getTotalConnections(): number {
+    let total = 0;
+    for (const room of this.rooms.values()) total += room.getConnectionCount();
+    return total;
+  }
+
   getRoomCount(): number {
     return this.rooms.size;
   }

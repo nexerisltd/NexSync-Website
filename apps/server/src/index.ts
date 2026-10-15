@@ -1,3 +1,4 @@
+import { LIMITS } from "@/config";
 import { ADMIN_SECRET, IS_DEMO_MODE } from "@/demo";
 import { BackupManager } from "@/managers/BackupManager";
 import { getActiveRooms } from "@/routes/active";
@@ -12,6 +13,7 @@ import { handleWebSocketUpgrade } from "@/routes/websocket";
 import { handleYoutubeImport } from "@/routes/youtubeImport";
 import { handleWorkerEvent, handleWorkerNext } from "@/routes/ytWorker";
 import { handleClose, handleMessage, handleOpen } from "@/routes/websocketHandlers";
+import { VERBOSE_LOGS } from "@/utils/log";
 import { corsHeaders, errorResponse } from "@/utils/responses";
 import type { WSData } from "@/utils/websocket";
 
@@ -109,13 +111,19 @@ const server = Bun.serve<WSData>({
       return errorResponse("Internal server error", 500);
     }
 
-    const durationMs = (performance.now() - start).toFixed(1);
-    console.log(`[${new Date().toISOString()}] ${req.method} ${url.pathname} ${response.status} ${durationMs}ms`);
+    const elapsedMs = performance.now() - start;
+    if (VERBOSE_LOGS || response.status >= 400 || elapsedMs > 500) {
+      console.log(
+        `[${new Date().toISOString()}] ${req.method} ${url.pathname} ${response.status} ${elapsedMs.toFixed(1)}ms`
+      );
+    }
 
     return response;
   },
 
   websocket: {
+    // Reject oversized frames early (Bun's default is 16 MB) so one bad client can't make us parse huge JSON
+    maxPayloadLength: LIMITS.MAX_WS_PAYLOAD_BYTES,
     open(ws) {
       handleOpen(ws, server);
     },
@@ -142,10 +150,10 @@ if (!IS_DEMO_MODE) {
     console.error("Failed to restore state on startup:", error);
   });
 
-  // Set up periodic backups every minute (for Render persistence issues)
-  const BACKUP_INTERVAL_MS = 60 * 1000; // 1 minute
+  // Periodic backups (default every minute, for hosts that restart/sleep); skipped while the server is empty
+  const BACKUP_INTERVAL_MS =
+    Number(process.env.BACKUP_INTERVAL_MS) > 0 ? Number(process.env.BACKUP_INTERVAL_MS) : 60 * 1000;
   setInterval(() => {
-    console.log("🔄 Performing periodic backup at", new Date().toISOString());
     BackupManager.backupState().catch((error) => {
       console.error("Failed to perform periodic backup:", error);
     });
@@ -158,7 +166,7 @@ const shutdown = async () => {
 
   void server.stop(); // Stop accepting new connections
   if (!IS_DEMO_MODE) {
-    await BackupManager.backupState(); // Save state
+    await BackupManager.backupState(true); // Save state
   }
 
   process.exit(0);

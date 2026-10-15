@@ -11,6 +11,7 @@ import {
 import { globalManager } from "@/managers/GlobalManager";
 import type { RoomBackupType, ServerBackupType } from "@/managers/RoomManager";
 import { ServerBackupSchema } from "@/managers/RoomManager";
+import { debug } from "@/utils/log";
 
 interface RoomRestoreResult {
   room: {
@@ -111,7 +112,13 @@ export class BackupManager {
   /**
    * Save the current server state to R2
    */
-  static async backupState(): Promise<void> {
+  /** Room count of the last backup we wrote (-1 = none yet), so an idle server doesn't rewrite an empty backup forever. */
+  private static lastBackupRoomCount = -1;
+
+  /**
+   * @param force write even if nothing changed (used on shutdown)
+   */
+  static async backupState(force = false): Promise<void> {
     try {
       // Collect state from all rooms
       const rooms: ServerBackupType["data"]["rooms"] = {};
@@ -119,6 +126,11 @@ export class BackupManager {
       globalManager.forEachRoom((room, roomId) => {
         rooms[roomId] = room.createBackup();
       });
+
+      // Nobody is here and the last backup was already empty: skip the upload + cleanup round-trips
+      // (they ran every minute, 24/7, and cost bandwidth on small hosts).
+      const roomCount = Object.keys(rooms).length;
+      if (!force && roomCount === 0 && this.lastBackupRoomCount === 0) return;
 
       const backupData: ServerBackupType = {
         timestamp: Date.now(),
@@ -130,7 +142,8 @@ export class BackupManager {
       // Upload to R2 using the utility function
       await uploadJSON(filename, backupData);
 
-      console.log(`✅ State backup completed: ${filename} (${rooms ? Object.keys(rooms).length : 0} rooms)`);
+      this.lastBackupRoomCount = roomCount;
+      debug(`✅ State backup completed: ${filename} (${roomCount} rooms)`);
 
       // Clean up old backups after successful backup
       await this.cleanupOldBackups();
@@ -259,13 +272,13 @@ export class BackupManager {
       for (const fileKey of filesToDelete) {
         try {
           await deleteObject(fileKey);
-          console.log(`  🗑️ Deleted: ${fileKey}`);
+          debug(`  🗑️ Deleted: ${fileKey}`);
         } catch (error) {
           console.error(`  ❌ Failed to delete ${fileKey}:`, error);
         }
       }
 
-      console.log(`✅ Cleanup completed. Kept ${keepCount} most recent backups.`);
+      debug(`✅ Cleanup completed. Kept ${keepCount} most recent backups.`);
     } catch (error) {
       // Don't throw - cleanup failures shouldn't break the backup process
       console.error("⚠️ Backup cleanup failed (non-critical):", error);

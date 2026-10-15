@@ -1,6 +1,7 @@
 "use client";
 import { useClientId } from "@/hooks/useClientId";
 import { useGlobalStore } from "@/store/global";
+import { useRoomTotals } from "@/store/roomTotals";
 import { TooltipPortal } from "@radix-ui/react-tooltip";
 import { Navigation, Users } from "lucide-react";
 import { useMemo } from "react";
@@ -11,6 +12,7 @@ import { ConnectedUserItem } from "./ConnectedUserItem";
 export const ConnectedUsersList = () => {
   const { clientId } = useClientId();
   const clients = useGlobalStore((state) => state.connectedClients);
+  const connectedTotal = useRoomTotals((state) => state.total);
   // const reorderClient = useGlobalStore((state) => state.reorderClient);
   const setAdminStatus = useGlobalStore((state) => state.setAdminStatus);
 
@@ -48,7 +50,7 @@ export const ConnectedUsersList = () => {
                 </TooltipContent>
               </TooltipPortal>
             </Tooltip>
-            <Badge variant="outline">{clients.length}</Badge>
+            <Badge variant="outline">{Math.max(connectedTotal, clients.length)}</Badge>
           </div>
         </div>
 
@@ -70,6 +72,11 @@ export const ConnectedUsersList = () => {
                     />
                   ))}
                 </div>
+                {connectedTotal > clients.length && (
+                  <p className="px-1 pt-1.5 text-[11px] text-neutral-400">
+                    +{connectedTotal - clients.length} more listening
+                  </p>
+                )}
               </div>
             </div>
           )}

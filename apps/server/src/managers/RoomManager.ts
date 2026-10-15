@@ -1,9 +1,10 @@
-import { calculateScheduleTimeMs, DEFAULT_CLIENT_RTT_MS } from "@/config";
+import { calculateScheduleTimeMs, clientChangeDelayMs, DEFAULT_CLIENT_RTT_MS, LIMITS } from "@/config";
 import { IS_DEMO_MODE } from "@/demo";
 import { deleteObjectsWithPrefix } from "@/lib/r2";
 import { ChatManager } from "@/managers/ChatManager";
 import { calculateGainFromDistanceToSource } from "@/spatial";
 import { debounce } from "@/utils/debounce";
+import { debug } from "@/utils/log";
 import { sendBroadcast, sendUnicast } from "@/utils/responses";
 import { positionClientsInCircle } from "@/utils/spatial";
 import type { BunServer, WSData } from "@/utils/websocket";
@@ -111,9 +112,7 @@ export class RoomManager {
   private intervalId?: NodeJS.Timeout;
   private cleanupTimer?: NodeJS.Timeout;
   private pendingClientChangeCb?: () => void;
-  private readonly debouncedClientChange = debounce(() => {
-    this.pendingClientChangeCb?.();
-  }, 500);
+  private clientChangeTimer?: ReturnType<typeof setTimeout>;
   private readonly debouncedAudioReady = debounce(() => this.flushAudioReadyBroadcast(), 200);
   private heartbeatCheckInterval?: NodeJS.Timeout;
   private onClientCountChange?: () => void;
@@ -554,6 +553,32 @@ export class RoomManager {
     };
   }
 
+  /** Number of open sockets in the room (cheap: no list is built). */
+  getConnectionCount(): number {
+    return this.wsConnections.size;
+  }
+
+  /**
+   * The client list to put into a CLIENT_CHANGE message.
+   * Normal rooms: everybody. Large rooms: admins first, then the earliest joiners (at most LARGE_ROOM_LIST_SIZE),
+   * plus `selfClientId` when given, so one person's join never costs O(room size) bytes to every other person.
+   * `total` is always the real head-count.
+   */
+  getClientListForBroadcast(selfClientId?: string): { clients: ClientDataType[]; total: number } {
+    const all = this.getClients();
+    if (all.length <= LIMITS.LARGE_ROOM_THRESHOLD) return { clients: all, total: all.length };
+
+    const listed = [...all.filter((c) => c.isAdmin), ...all.filter((c) => !c.isAdmin)].slice(
+      0,
+      LIMITS.LARGE_ROOM_LIST_SIZE
+    );
+    if (selfClientId && !listed.some((c) => c.clientId === selfClientId)) {
+      const self = all.find((c) => c.clientId === selfClientId);
+      if (self) listed.push(self);
+    }
+    return { clients: listed, total: all.length };
+  }
+
   getNumClients(): number {
     return this.getClients().length;
   }
@@ -668,7 +693,7 @@ export class RoomManager {
 
     // Log first NTP probe per client (confirms probes are flowing)
     if (client.rtt === 0 && clientRTT !== undefined && clientRTT > 0) {
-      console.log(
+      debug(
         `[NTP] First probe from ${client.username} (${clientId}) in room ${this.roomId} | RTT=${clientRTT.toFixed(1)}ms`
       );
     }
@@ -808,17 +833,30 @@ export class RoomManager {
   /**
    * Start spatial audio interval
    */
-  startSpatialAudio(server: BunServer): void {
+  startSpatialAudio(server: BunServer): boolean {
     // Don't start if already running
-    if (this.intervalId) return;
+    if (this.intervalId) return true;
+
+    // The loop re-sends every listener's gain to every listener 10x per second: only sane in modest rooms.
+    if (this.getConnectionCount() > LIMITS.MAX_SPATIAL_CLIENTS) {
+      console.warn(
+        `Spatial audio not started in room ${this.roomId}: ${this.getConnectionCount()} listeners (max ${LIMITS.MAX_SPATIAL_CLIENTS})`
+      );
+      return false;
+    }
 
     // Create a closure for the number of loops
     let loopCount = 0;
 
     const updateSpatialAudio = () => {
       const clients = this.getClients();
-      console.log(`ROOM ${this.roomId} LOOP ${loopCount}: Connected clients: ${clients.length}`);
+      debug(`ROOM ${this.roomId} LOOP ${loopCount}: Connected clients: ${clients.length}`);
       if (clients.length === 0) return;
+      if (clients.length > LIMITS.MAX_SPATIAL_CLIENTS) {
+        // the room grew past the limit while the loop was running
+        this.stopSpatialAudio();
+        return;
+      }
 
       // Calculate new position for listening source in a circle
       const radius = 25;
@@ -867,6 +905,7 @@ export class RoomManager {
     };
 
     this.intervalId = setInterval(updateSpatialAudio, 100);
+    return true;
   }
 
   /**
@@ -1035,12 +1074,21 @@ export class RoomManager {
 
   /** Debounce a CLIENT_CHANGE broadcast. Coalesces rapid joins/leaves into one callback. */
   scheduleClientChangeBroadcast(callback: () => void): void {
+    // Always keep the latest callback; one timer at a time, so a join storm produces one broadcast per window
+    // instead of never firing (trailing debounce) or firing once per join.
     this.pendingClientChangeCb = callback;
-    this.debouncedClientChange();
+    if (this.clientChangeTimer) return;
+    this.clientChangeTimer = setTimeout(() => {
+      this.clientChangeTimer = undefined;
+      const pending = this.pendingClientChangeCb;
+      this.pendingClientChangeCb = undefined;
+      pending?.();
+    }, clientChangeDelayMs(this.wsConnections.size));
   }
 
   clearClientChangeBroadcast(): void {
-    this.debouncedClientChange.cancel();
+    if (this.clientChangeTimer) clearTimeout(this.clientChangeTimer);
+    this.clientChangeTimer = undefined;
     this.pendingClientChangeCb = undefined;
   }
 

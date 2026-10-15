@@ -2,6 +2,7 @@
 import { SOCIAL_LINKS } from "@/constants";
 import { audioContextManager } from "@/lib/audioContextManager";
 import { MAX_NTP_MEASUREMENTS, useGlobalStore } from "@/store/global";
+import { useRoomTotals } from "@/store/roomTotals";
 import { Crown, Hash, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
@@ -17,7 +18,9 @@ export const TopBar = ({ roomId }: TopBarProps) => {
   const isLoadingAudio = useGlobalStore((state) => state.isInitingSystem);
   const isSynced = useGlobalStore((state) => state.isSynced);
   const roundTripEstimate = useGlobalStore((state) => state.roundTripEstimate);
-  const connectedClientCount = useGlobalStore((state) => state.connectedClients.length);
+  const listedClientCount = useGlobalStore((state) => state.connectedClients.length);
+  const totalClients = useRoomTotals((state) => state.total);
+  const connectedClientCount = Math.max(totalClients, listedClientCount);
   const clockOffset = useGlobalStore((state) => state.offsetEstimate);
   const syncMeasurementCount = useGlobalStore((state) => state.syncMeasurements.length);
 

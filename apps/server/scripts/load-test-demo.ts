@@ -15,6 +15,8 @@
  * Options:
  *   --clients <n>     Number of clients to simulate (default: 2500)
  *   --room <id>       Room ID to join (default: 000000)
+ *   --rooms <n>       Spread the clients over n rooms instead of one (room ids 100000, 100001, ...). Use this to
+ *                     simulate many normal rooms; leave it out to stress ONE huge room.
  *   --host <url>      Server WebSocket URL (default: ws://localhost)
  *   --ramp <ms>       Time to ramp up all connections (default: 15000)
  *   --duration <s>    How long to run after all connected (default: 10)
@@ -37,6 +39,7 @@ function hasFlag(name: string): boolean {
 
 const TOTAL_CLIENTS = parseInt(getArg("clients", "2500"));
 const ROOM_ID = getArg("room", "000000");
+const ROOMS = Math.max(1, parseInt(getArg("rooms", "1")));
 const WS_HOST = getArg("host", "ws://localhost");
 const RAMP_MS = parseInt(getArg("ramp", "15000"));
 const DURATION_S = parseInt(getArg("duration", "10"));
@@ -248,7 +251,7 @@ function createClient(index: number): Promise<SimulatedClient> {
     const username = `loadtest-${index}`;
 
     const params = new URLSearchParams({
-      roomId: ROOM_ID,
+      roomId: ROOMS > 1 ? String(100000 + (index % ROOMS)) : ROOM_ID,
       username,
       clientId,
     });
@@ -435,9 +438,7 @@ function handleServerMessage(client: SimulatedClient, data: ServerMessage): void
       if (data.event.type === "SET_AUDIO_SOURCES" && data.event.sources) {
         // Store audio source URLs for eager loading after sync
         // Resolve relative URLs (demo mode serves at /audio/...)
-        client.audioSources = data.event.sources.map((s) =>
-          s.url.startsWith("/") ? `${HTTP_BASE}${s.url}` : s.url
-        );
+        client.audioSources = data.event.sources.map((s) => (s.url.startsWith("/") ? `${HTTP_BASE}${s.url}` : s.url));
       }
 
       if (data.event.type === "LOAD_AUDIO_SOURCE" && data.event.audioSourceToPlay) {
@@ -527,8 +528,7 @@ function rttVerdict(avgRtt: number): string {
 function printMetrics(): void {
   const avgRtt = getAvgRtt();
   const minRtt = metrics.ntpMinRtt === Infinity ? 0 : metrics.ntpMinRtt;
-  const avgDownloadMs =
-    metrics.audioDownloads > 0 ? metrics.audioDownloadTotalMs / metrics.audioDownloads : 0;
+  const avgDownloadMs = metrics.audioDownloads > 0 ? metrics.audioDownloadTotalMs / metrics.audioDownloads : 0;
   const successRate = metrics.connectAttempts > 0 ? (metrics.connectSuccesses / metrics.connectAttempts) * 100 : 0;
   const connColor = successRate === 100 ? c.green : successRate > 75 ? c.yellow : c.red;
   const failColor = metrics.connectFailures === 0 ? c.green : c.red;
@@ -541,7 +541,7 @@ function printMetrics(): void {
   // Config
   console.log(header("CONFIG"));
   console.log(row("Target clients", TOTAL_CLIENTS));
-  console.log(row("Room ID", ROOM_ID));
+  console.log(row("Room ID", ROOMS > 1 ? `${ROOMS} rooms (100000+)` : ROOM_ID));
   console.log(row("Ramp / Duration", `${RAMP_MS}ms / ${DURATION_S}s`));
   console.log(row("Audio downloads", SKIP_AUDIO ? `${c.yellow}SKIPPED` : `${c.green}ENABLED`));
 
@@ -551,7 +551,9 @@ function printMetrics(): void {
   console.log(row("Succeeded", `${metrics.connectSuccesses}/${metrics.connectAttempts}`, connColor));
   console.log(row("Failed", metrics.connectFailures, failColor));
   console.log(row("Peak concurrent", metrics.peakConnections, c.white));
-  console.log(row("Synced", metrics.clientsSynced, metrics.clientsSynced === metrics.connectSuccesses ? c.green : c.yellow));
+  console.log(
+    row("Synced", metrics.clientsSynced, metrics.clientsSynced === metrics.connectSuccesses ? c.green : c.yellow)
+  );
 
   // Messages
   console.log(header("MESSAGES"));
@@ -602,7 +604,9 @@ function printMetrics(): void {
       const rtt = `${snap.avgRtt.toFixed(1)}ms`.padStart(9);
       const ltRss = formatMB(snap.loadTestRssMB).padStart(7);
       const srvRss = formatMB(snap.serverRssMB).padStart(7);
-      const sysPct = `${(((snap.systemTotalMB - snap.systemFreeMB) / snap.systemTotalMB) * 100).toFixed(0)}%`.padStart(4);
+      const sysPct = `${(((snap.systemTotalMB - snap.systemFreeMB) / snap.systemTotalMB) * 100).toFixed(0)}%`.padStart(
+        4
+      );
       console.log(`  ${c.dim}${t}${c.reset}  ${phase}  ${conn}  ${rtt}  ${ltRss}  ${srvRss}  ${sysPct}`);
     }
   }
@@ -632,8 +636,11 @@ function startLiveReporting(): void {
     const mem = process.memoryUsage();
     const ltRss = formatMB(mem.rss / 1024 / 1024);
     const rc = rttColor(avgRtt);
-    const errStr = metrics.connectFailures > 0 ? `${c.red}${metrics.connectFailures}${c.reset}` : `${c.green}0${c.reset}`;
-    const dl = SKIP_AUDIO ? "" : ` ${c.dim}|${c.reset} DL:${colorValue(formatBytes(metrics.audioDownloadBytes), c.magenta)}`;
+    const errStr =
+      metrics.connectFailures > 0 ? `${c.red}${metrics.connectFailures}${c.reset}` : `${c.green}0${c.reset}`;
+    const dl = SKIP_AUDIO
+      ? ""
+      : ` ${c.dim}|${c.reset} DL:${colorValue(formatBytes(metrics.audioDownloadBytes), c.magenta)}`;
     process.stdout.write(
       `\r  ${c.dim}Conn:${c.reset}${colorValue(`${metrics.openConnections}/${TOTAL_CLIENTS}`, c.cyan)}` +
         ` ${c.dim}Sync:${c.reset}${colorValue(metrics.clientsSynced, c.green)}` +
@@ -659,10 +666,14 @@ function stopLiveReporting(): void {
 
 async function main(): Promise<void> {
   console.log(`\n  ${c.bold}${c.cyan}Beatsync Demo Load Test${c.reset}`);
-  console.log(`  ${c.dim}Target:${c.reset} ${c.bold}${TOTAL_CLIENTS}${c.reset} clients → room ${c.bold}${ROOM_ID}${c.reset}`);
+  console.log(
+    `  ${c.dim}Target:${c.reset} ${c.bold}${TOTAL_CLIENTS}${c.reset} clients → room ${c.bold}${ROOM_ID}${c.reset}`
+  );
   console.log(`  ${c.dim}Server:${c.reset} ${WS_HOST}`);
   console.log(`  ${c.dim}Ramp:${c.reset} ${RAMP_MS}ms ${c.dim}Duration:${c.reset} ${DURATION_S}s`);
-  console.log(`  ${c.dim}Audio:${c.reset} ${SKIP_AUDIO ? `${c.yellow}SKIPPED${c.reset}` : `${c.green}ENABLED${c.reset} ${c.dim}(real HTTP downloads)${c.reset}`}\n`);
+  console.log(
+    `  ${c.dim}Audio:${c.reset} ${SKIP_AUDIO ? `${c.yellow}SKIPPED${c.reset}` : `${c.green}ENABLED${c.reset} ${c.dim}(real HTTP downloads)${c.reset}`}\n`
+  );
 
   // Check server is reachable
   try {
@@ -704,10 +715,7 @@ async function main(): Promise<void> {
   const RAMP_TIMEOUT_MS = RAMP_MS + 15_000;
   const rampDeadline = new Promise<"timeout">((r) => setTimeout(() => r("timeout"), RAMP_TIMEOUT_MS));
 
-  const rampResult = await Promise.race([
-    Promise.allSettled(connectionPromises).then((r) => r),
-    rampDeadline,
-  ]);
+  const rampResult = await Promise.race([Promise.allSettled(connectionPromises).then((r) => r), rampDeadline]);
 
   if (rampResult !== "timeout") {
     rampResult.forEach((r) => {
@@ -719,7 +727,9 @@ async function main(): Promise<void> {
 
   stopLiveReporting();
   if (rampResult === "timeout") {
-    console.log(`  Ramp timed out after ${(RAMP_TIMEOUT_MS / 1000).toFixed(0)}s — ${metrics.openConnections} connected\n`);
+    console.log(
+      `  Ramp timed out after ${(RAMP_TIMEOUT_MS / 1000).toFixed(0)}s — ${metrics.openConnections} connected\n`
+    );
   } else {
     console.log(`  Phase 1 complete: ${metrics.openConnections} connected, ${metrics.clientsSynced} synced\n`);
   }
@@ -739,7 +749,9 @@ async function main(): Promise<void> {
       const dropPct = ((steadyStartConnections - metrics.openConnections) / steadyStartConnections) * 100;
       if (dropPct > 25) {
         console.log("");
-        console.log(`  Early exit: lost ${dropPct.toFixed(0)}% of connections (${steadyStartConnections} → ${metrics.openConnections})`);
+        console.log(
+          `  Early exit: lost ${dropPct.toFixed(0)}% of connections (${steadyStartConnections} → ${metrics.openConnections})`
+        );
         break;
       }
     }

@@ -1,5 +1,6 @@
 import { IS_DEMO_MODE } from "@/demo";
 import { globalManager } from "@/managers";
+import { debug } from "@/utils/log";
 import { sendBroadcast, sendToClient, sendUnicast } from "@/utils/responses";
 import type { BunServer, WSData } from "@/utils/websocket";
 import { dispatchMessage } from "@/websocket/dispatch";
@@ -7,13 +8,16 @@ import type { WSBroadcastType } from "@beatsync/shared";
 import { epochNow, WSRequestSchema } from "@beatsync/shared";
 import type { ServerWebSocket } from "bun";
 
-const createClientUpdate = (roomId: string) => {
+const createClientUpdate = (roomId: string, selfClientId?: string) => {
   const room = globalManager.getRoom(roomId);
+  const { clients, total } = room ? room.getClientListForBroadcast(selfClientId) : { clients: [], total: 0 };
   const message: WSBroadcastType = {
     type: "ROOM_EVENT",
     event: {
       type: "CLIENT_CHANGE",
-      clients: room ? room.getClients() : [],
+      clients,
+      // only in big rooms, where `clients` is a short list
+      ...(total > clients.length ? { totalClients: total } : {}),
     },
   };
   return message;
@@ -40,7 +44,7 @@ function debouncedDemoUserCountBroadcast(server: BunServer, roomId: string): voi
 }
 
 export const handleOpen = (ws: ServerWebSocket<WSData>, server: BunServer) => {
-  console.log(`WebSocket connection opened for user ${ws.data.username} in room ${ws.data.roomId}`);
+  debug(`WebSocket connection opened for user ${ws.data.username} in room ${ws.data.roomId}`);
 
   const { roomId } = ws.data;
   ws.subscribe(roomId);
@@ -53,7 +57,7 @@ export const handleOpen = (ws: ServerWebSocket<WSData>, server: BunServer) => {
 
   // Send audio sources to the newly joined client
   if (audioSources.length > 0) {
-    console.log(`Sending ${audioSources.length} audio source(s) to newly joined client ${ws.data.username}`);
+    debug(`Sending ${audioSources.length} audio source(s) to newly joined client ${ws.data.username}`);
 
     sendToClient({
       ws,
@@ -155,7 +159,7 @@ export const handleOpen = (ws: ServerWebSocket<WSData>, server: BunServer) => {
     });
   } else {
     // Unicast full client list to the joining client immediately
-    sendToClient({ ws, message: createClientUpdate(roomId) });
+    sendToClient({ ws, message: createClientUpdate(roomId, ws.data.clientId) });
     // Broadcast to others: debounced
     debouncedClientChangeBroadcast(server, roomId);
   }
@@ -210,7 +214,7 @@ export const handleMessage = async (ws: ServerWebSocket<WSData>, message: string
     }
 
     const parsedMessage = WSRequestSchema.parse(parsedData);
-    console.log(`[Room: ${roomId}] | User: ${username} | Message: ${JSON.stringify(parsedMessage)}`);
+    debug(`[Room: ${roomId}] | User: ${username} | Message: ${JSON.stringify(parsedMessage)}`);
 
     // Delegate to type-safe dispatcher
     await dispatchMessage({ ws, message: parsedMessage, server });
@@ -222,7 +226,7 @@ export const handleMessage = async (ws: ServerWebSocket<WSData>, message: string
 
 export const handleClose = (ws: ServerWebSocket<WSData>, server: BunServer) => {
   try {
-    console.log(`WebSocket connection closed for user ${ws.data.username} in room ${ws.data.roomId}`);
+    debug(`WebSocket connection closed for user ${ws.data.username} in room ${ws.data.roomId}`);
 
     const { roomId, clientId } = ws.data;
     const room = globalManager.getRoom(roomId);

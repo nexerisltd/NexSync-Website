@@ -1,7 +1,9 @@
 import { toast } from "sonner";
+import { getClientId } from "@/lib/clientId";
 import { describeImportReason } from "@/lib/importReason";
 import { useChatStore } from "@/store/chat";
 import { useGlobalStore } from "@/store/global";
+import { useRoomTotals } from "@/store/roomTotals";
 import { getProbeStats, handleNTPResponse } from "@/utils/ntp";
 import { sendWSRequest } from "@/utils/ws";
 import { ClientActionEnum, ServerActionEnum, type ExtractWSResponseFrom } from "@beatsync/shared";
@@ -14,7 +16,13 @@ const ROOM_EVENT_REGISTRY: {
   [K in RoomEvent["type"]]: (event: Extract<RoomEvent, { type: K }>) => void;
 } = {
   CLIENT_CHANGE: (event) => {
-    useGlobalStore.getState().setConnectedClients(event.clients);
+    const { currentUser, setConnectedClients } = useGlobalStore.getState();
+    const myId = getClientId();
+    // Big rooms only list a few people, so we may be missing from a broadcast: keep ourselves in the list.
+    const listsMe = event.clients.some((client) => client.clientId === myId);
+    const clients = listsMe || !currentUser ? event.clients : [currentUser, ...event.clients];
+    setConnectedClients(clients);
+    useRoomTotals.getState().setTotal(Math.max(event.totalClients ?? 0, clients.length));
   },
   SET_AUDIO_SOURCES: (event) => {
     useGlobalStore.getState().handleSetAudioSources(event);

@@ -9,5 +9,8 @@ export const handleStartSpatialAudio: HandlerFunction<ExtractWSRequestFrom["STAR
   // Start loop only if not already started
   const { room } = requireCanMutate(ws); // do nothing if no room exists
 
-  room.startSpatialAudio(server);
+  const started = room.startSpatialAudio(server);
+  if (!started) {
+    ws.send(JSON.stringify({ type: "ERROR", message: "Spatial audio is only available in smaller rooms." }));
+  }
 };

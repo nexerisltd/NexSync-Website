@@ -40,6 +40,8 @@ export type ClientDataType = z.infer<typeof ClientDataSchema>;
 const ClientChangeMessageSchema = z.object({
   type: z.literal("CLIENT_CHANGE"),
   clients: z.array(ClientDataSchema),
+  // Set in big rooms, where `clients` is only a short list (admins + first joiners + yourself): the real head-count.
+  totalClients: z.number().optional(),
 });
 
 // Set audio sources

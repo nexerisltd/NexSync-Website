@@ -1,4 +1,7 @@
 import { DEMO_ROOM_ID, IS_DEMO_MODE, isValidAdminSecret } from "@/demo";
+import { LIMITS } from "@/config";
+import { globalManager } from "@/managers";
+import { debug } from "@/utils/log";
 import { errorResponse } from "@/utils/responses";
 import type { BunServer, WSData } from "@/utils/websocket";
 
@@ -30,13 +33,22 @@ export const handleWebSocketUpgrade = (req: Request, server: BunServer) => {
     return errorResponse(`Only room ${DEMO_ROOM_ID} is available in demo mode`);
   }
 
+  // Capacity guards: refuse early (cheap) instead of letting the machine run out of memory
+  const room = globalManager.getRoom(roomId);
+  if (room && room.getConnectionCount() >= LIMITS.MAX_CLIENTS_PER_ROOM) {
+    return errorResponse("This room is full", 503);
+  }
+  if (globalManager.getTotalConnections() >= LIMITS.MAX_TOTAL_CLIENTS) {
+    return errorResponse("The server is full right now. Please try again in a few minutes.", 503);
+  }
+
   // Check if client provided valid admin secret
   const isAdmin = IS_DEMO_MODE && isValidAdminSecret(adminSecret);
 
   const isCreator = !IS_DEMO_MODE && !!CREATOR_SECRET && creatorSecret === CREATOR_SECRET;
 
   const tags = [isAdmin && "admin", isCreator && "creator"].filter(Boolean).join(", ");
-  console.log(`User ${username} joined room ${roomId} with clientId ${clientId}${tags ? ` (${tags})` : ""}`);
+  debug(`User ${username} joined room ${roomId} with clientId ${clientId}${tags ? ` (${tags})` : ""}`);
 
   const data: WSData = {
     roomId,

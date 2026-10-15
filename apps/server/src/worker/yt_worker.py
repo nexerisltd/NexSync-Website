@@ -26,7 +26,7 @@ import yt_dlp
 
 SERVER = os.environ["NEXSYNC_SERVER"].rstrip("/")
 SECRET = os.environ["NEXSYNC_WORKER_SECRET"]
-IDLE_SECONDS = int(os.getenv("IDLE_SECONDS", "900"))          # exit after this long without a job
+IDLE_SECONDS = int(os.getenv("IDLE_SECONDS", "300"))          # exit after this long without a job (while it waits, its polling keeps a free Render instance awake)
 MAX_RUN_SECONDS = int(os.getenv("MAX_RUN_SECONDS", str(10 * 3600)))
 DL_CONCURRENCY = int(os.getenv("DL_CONCURRENCY", "3"))
 UP_CONCURRENCY = int(os.getenv("UP_CONCURRENCY", "2"))
