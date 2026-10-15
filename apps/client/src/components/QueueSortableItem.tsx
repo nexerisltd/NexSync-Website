@@ -97,7 +97,7 @@ export const QueueSortableItem = ({
               }
         }
         className={cn(
-          "nx-row group select-none gap-3 py-2.5 pr-3 pl-2",
+          "nx-row group select-none gap-2 py-2.5 pr-3 pl-2",
           isSelected && !isLoading && !isError ? "nx-row-active text-white" : "text-neutral-200",
           !canMutate && "text-white/60",
           (isLoading || isError) && "cursor-not-allowed opacity-60",

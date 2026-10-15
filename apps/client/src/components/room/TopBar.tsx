@@ -3,7 +3,7 @@ import { SOCIAL_LINKS } from "@/constants";
 import { audioContextManager } from "@/lib/audioContextManager";
 import { MAX_NTP_MEASUREMENTS, useGlobalStore } from "@/store/global";
 import { useRoomTotals } from "@/store/roomTotals";
-import { Activity, ChevronDown, Clock, Crown, Headphones, Link2, LogOut, Radio, Users, Wifi } from "lucide-react";
+import { ChevronDown, Crown, Link2, LogOut } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { FaDiscord, FaGithub } from "react-icons/fa";
@@ -52,53 +52,51 @@ export const TopBar = ({ roomId }: TopBarProps) => {
   // Full bar when synced and not loading
   if (!isLoadingAudio && isSynced) {
     return (
-      <div className="z-50 flex h-14 items-center justify-between gap-3 px-3 glass-flat lg:h-[4.5rem] lg:bg-none lg:px-6 lg:shadow-none">
-        {/* Left: brand + room + live stats */}
-        <div className="flex min-w-0 items-center gap-2 lg:gap-3">
-          <Link href="/" className="mr-1 flex shrink-0 items-center gap-2.5 text-white transition-opacity hover:opacity-90">
+      <div className="z-50 flex h-14 items-center justify-between gap-3 px-3 glass-flat lg:h-16 lg:bg-none lg:px-6 lg:shadow-none">
+        {/* Left: brand, room, live status */}
+        <div className="flex min-w-0 items-center gap-3 lg:gap-4">
+          <Link href="/" className="flex shrink-0 items-center gap-2 text-white transition-opacity hover:opacity-90">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="" className="size-8 lg:size-10" />
-            <span className="hidden text-lg font-semibold tracking-tight sm:inline lg:text-xl">NexSync</span>
+            <img src="/logo.png" alt="" className="size-7 lg:size-8" />
+            <span className="hidden text-base font-semibold tracking-tight sm:inline">NexSync</span>
           </Link>
 
-          <span className="nx-pill" title="Room code">
-            <Radio className="size-4" />
-            Room {roomId}
-          </span>
+          <span className="h-4 w-px bg-white/12" aria-hidden="true" />
 
-          <span className="nx-pill hidden xl:inline-flex" title="Clock-sync measurements">
-            <Activity className="size-4" />
-            {syncMeasurementCount}/{MAX_NTP_MEASUREMENTS}
-          </span>
-
-          <span className="nx-pill" title="Listeners in this room">
-            <Users className="size-4" />
-            {connectedClientCount} {connectedClientCount === 1 ? "User" : "Users"}
-          </span>
-
-          {isAdmin && (
-            <span className="nx-pill hidden md:inline-flex" title="You can control playback">
-              <Crown className="size-4 !text-yellow-400" fill="currentColor" />
-              Admin
+          <div className="flex items-center gap-2 text-xs text-neutral-300">
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500/40" />
+              <span className="relative inline-flex size-2 rounded-full bg-green-500" />
             </span>
-          )}
-
-          <span className="nx-pill hidden lg:inline-flex" title="Clock offset to the server">
-            <Clock className="size-4" />
-            Offset: {clockOffset.toFixed(2)}ms
-          </span>
-          <span className="nx-pill hidden lg:inline-flex" title="Round-trip time to the server">
-            <Wifi className="size-4" />
-            RTT: {roundTripEstimate.toFixed(2)}ms
-          </span>
-          <span className="nx-pill hidden xl:inline-flex" title="Audio output latency of this device">
-            <Headphones className="size-4" />
-            OL: {((audioContextManager.getContext().outputLatency ?? 0) * 1000).toFixed(0)}ms
-          </span>
+            <span className="font-medium text-white">Room {roomId}</span>
+            <span className="text-neutral-400">
+              · {connectedClientCount} {connectedClientCount === 1 ? "person" : "people"} listening
+            </span>
+            {isAdmin && (
+              <span className="hidden items-center gap-1 text-neutral-400 md:flex">
+                · <Crown className="size-3 text-yellow-400" fill="currentColor" /> Admin
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Right: install, social, account */}
+        {/* Right: quiet sync stats, then actions */}
         <div className="flex shrink-0 items-center gap-1.5">
+          <div className="mr-2 hidden items-center gap-4 font-mono text-[11px] text-neutral-500 lg:flex">
+            <span>
+              NTP <span className="text-neutral-300">{syncMeasurementCount}/{MAX_NTP_MEASUREMENTS}</span>
+            </span>
+            <span>
+              Offset <span className="text-neutral-300">{clockOffset.toFixed(1)}ms</span>
+            </span>
+            <span>
+              RTT <span className="text-neutral-300">{roundTripEstimate.toFixed(1)}ms</span>
+            </span>
+            <span>
+              OL <span className="text-neutral-300">{((audioContextManager.getContext().outputLatency ?? 0) * 1000).toFixed(0)}ms</span>
+            </span>
+          </div>
+
           <InstallAppButton />
           {SOCIAL_LINKS.discord && (
             <a
@@ -108,7 +106,7 @@ export const TopBar = ({ roomId }: TopBarProps) => {
               className="nx-icon-btn hidden sm:inline-grid"
               aria-label="Discord"
             >
-              <FaDiscord className="size-[18px]" />
+              <FaDiscord className="size-[17px]" />
             </a>
           )}
           {SOCIAL_LINKS.github && (
@@ -119,7 +117,7 @@ export const TopBar = ({ roomId }: TopBarProps) => {
               className="nx-icon-btn hidden sm:inline-grid"
               aria-label="GitHub"
             >
-              <FaGithub className="size-[18px]" />
+              <FaGithub className="size-4" />
             </a>
           )}
 
@@ -128,12 +126,12 @@ export const TopBar = ({ roomId }: TopBarProps) => {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="ml-1 flex items-center gap-1.5 rounded-full p-0.5 pr-1.5 transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400/60"
+                  className="ml-1 flex items-center gap-1 rounded-full p-0.5 pr-1.5 transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400/60"
                   aria-label="Account menu"
                 >
-                  <Avatar className="size-9 ring-2 ring-white/15">
+                  <Avatar className="size-8 ring-1 ring-white/20">
                     <AvatarImage src={currentUser.location?.flagSvgURL} className="h-full w-full object-cover" />
-                    <AvatarFallback className="bg-primary-600 text-xs font-semibold">
+                    <AvatarFallback className="bg-primary-600 text-[11px] font-semibold">
                       {initialsOf(currentUser.username)}
                     </AvatarFallback>
                   </Avatar>

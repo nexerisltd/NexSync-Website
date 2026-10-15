@@ -6,14 +6,6 @@ import { Player } from "../room/Player";
 import { GlobalVolumeControl } from "./GlobalVolumeControl";
 import { NudgeControl } from "./NudgeControl";
 
-/** Stable gradient for a track: the same name always gets the same colours (there is no cover art in the queue data). */
-const coverGradient = (seed: string) => {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-  const hue = 200 + (hash % 80); // blues / violets, matches the brand
-  return `linear-gradient(135deg, hsl(${hue} 85% 55%), hsl(${(hue + 40) % 360} 80% 32%))`;
-};
-
 const NowPlaying = () => {
   const selectedUrl = useGlobalStore((state) => state.selectedAudioUrl);
   const isPlaying = useGlobalStore((state) => state.isPlaying);
@@ -22,8 +14,8 @@ const NowPlaying = () => {
   if (!selectedUrl) {
     return (
       <div className="flex min-w-0 items-center gap-3">
-        <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-white/6 text-neutral-400">
-          <Music2 className="size-6" />
+        <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-white/6 text-neutral-400">
+          <Music2 className="size-5" />
         </div>
         <div className="min-w-0 leading-tight">
           <div className="truncate text-sm font-semibold text-white">Nothing playing</div>
@@ -38,11 +30,8 @@ const NowPlaying = () => {
 
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <div
-        className="grid size-14 shrink-0 place-items-center rounded-2xl text-white shadow-lg shadow-blue-900/40 ring-1 ring-white/15"
-        style={{ background: coverGradient(title) }}
-      >
-        <Music2 className={isPlaying ? "size-6 animate-pulse" : "size-6"} />
+      <div className="nx-tile grid size-12 shrink-0 place-items-center rounded-xl">
+        <Music2 className={isPlaying ? "size-5 animate-pulse" : "size-5"} />
       </div>
       <div className="min-w-0 leading-tight">
         <div className="truncate text-sm font-semibold text-white" title={title}>

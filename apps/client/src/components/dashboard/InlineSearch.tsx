@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { useCanMutate, useGlobalStore } from "@/store/global";
 import { sendWSRequest } from "@/utils/ws";
 import { ClientActionEnum } from "@beatsync/shared";
-import { ArrowDown, FlaskConical, Search as SearchIcon, X } from "lucide-react";
+import { ArrowDown, Search as SearchIcon, X, ZapIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
@@ -253,7 +253,7 @@ export function InlineSearch() {
             onBlur={() => setIsFocused(false)}
             disabled={!canMutate}
             className={cn(
-              "w-full h-12 pr-24 sm:pr-20 border border-white/12 rounded-full text-base sm:text-sm font-normal transition-all duration-200 focus:outline-none truncate",
+              "w-full h-11 pr-24 sm:pr-20 border border-white/12 rounded-xl text-base sm:text-sm font-normal transition-all duration-200 focus:outline-none truncate",
               activeStreamJobs > 0 ? "pl-16" : "pl-12",
               canMutate
                 ? "bg-white/7 hover:bg-white/10 focus:bg-white/10 focus:border-primary-400/70 focus:ring-2 focus:ring-primary-400/30 text-white placeholder:text-neutral-400"
@@ -298,11 +298,9 @@ export function InlineSearch() {
       </form>
 
       {/* Beta Disclaimer */}
-      <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-primary-400/20 bg-primary-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary-300">
-        <FlaskConical className="size-3" />
-        <span>Experimental</span>
-        <span className="text-primary-400/60">·</span>
-        <span>Free beta</span>
+      <div className="mt-2 ml-0.5 flex items-center gap-1 text-[10px] font-mono text-neutral-500">
+        <ZapIcon className="size-3 stroke-1" />
+        <span>[EXPERIMENTAL FREE BETA]</span>
       </div>
 
       {/* Search Results Dropdown */}

@@ -5,19 +5,19 @@ import { Chat } from "./right/Chat";
 import { SpatialAudio } from "./right/SpatialAudio";
 
 const tabClass =
-  "flex-1 gap-2 rounded-none border-0 border-b-2 border-transparent bg-transparent py-3 text-sm font-medium text-neutral-400 shadow-none transition-colors hover:text-white data-[state=active]:border-primary-400 data-[state=active]:bg-primary-500/10 data-[state=active]:text-white data-[state=active]:shadow-none dark:data-[state=active]:bg-primary-500/10 dark:data-[state=active]:border-primary-400";
+  "flex-1 gap-2 text-neutral-400 data-[state=active]:bg-white/10 dark:data-[state=active]:bg-white/10 data-[state=active]:text-white dark:data-[state=active]:text-white data-[state=active]:shadow-none dark:data-[state=active]:border-transparent";
 
 export const Right = () => {
   return (
     <div className="flex h-full w-full flex-col glass-flat nx-panel lg:w-80 lg:flex-shrink-0 xl:w-[21rem]">
       <Tabs defaultValue="chat" className="flex h-full min-h-0 flex-col gap-0">
-        <TabsList className="h-auto w-full shrink-0 gap-0 rounded-none border-b border-white/8 bg-transparent p-0">
+        <TabsList className="m-3 mb-2 h-10 shrink-0 bg-white/5 p-1 rounded-xl">
           <TabsTrigger value="chat" className={tabClass}>
-            <MessageCircle className="size-4" />
+            <MessageCircle className="size-3.5" />
             Chat
           </TabsTrigger>
           <TabsTrigger value="spatial" className={tabClass}>
-            <Rotate3D className="size-4" />
+            <Rotate3D className="size-3.5" />
             Spatial
           </TabsTrigger>
         </TabsList>

@@ -257,7 +257,7 @@ export const Chat = () => {
                                 msg.isCreator
                                   ? "bg-sky-700 text-white"
                                   : isOwnMessage
-                                    ? "bg-gradient-to-br from-[#2f8cff] to-[#1d62e0] text-white"
+                                    ? "bg-primary-600 text-white"
                                     : "bg-white/8 text-neutral-200",
                                 // Corner rounding for message bubbles
                                 isSingle

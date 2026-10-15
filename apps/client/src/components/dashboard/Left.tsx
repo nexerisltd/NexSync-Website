@@ -61,7 +61,7 @@ export const Left = ({ className }: LeftProps) => {
       <motion.div className="px-4 pt-4 pb-2">
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2 text-base font-semibold text-white">
-            <Hash size={18} className="shrink-0 text-primary-400" />
+            <Hash size={18} className="shrink-0 text-neutral-400" />
             <span className="truncate">Room {roomId}</span>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
