@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CHAT_CONSTANTS, LOW_PASS_CONSTANTS } from "../constants";
+import { CHAT_CONSTANTS, LIVE_CONSTANTS, LOW_PASS_CONSTANTS } from "../constants";
 import { AudioSourceSchema, PositionSchema } from "./basic";
 
 // ROOM EVENTS
@@ -36,6 +36,8 @@ export const ClientActionEnum = z.enum([
   "SET_METRONOME", // Toggle metronome on/off for all clients
   "SET_LOW_PASS_FREQ", // Set low-pass filter cutoff frequency
   "LIVENESS_PONG", // Liveness reply to a server LIVENESS_PING
+  "START_LIVE", // Admin starts sharing their device audio with the room
+  "STOP_LIVE", // Admin stops the live broadcast
 ]);
 
 export const NTPRequestPacketSchema = z.object({
@@ -166,6 +168,19 @@ export const LivenessPongSchema = z.object({
   type: z.literal(ClientActionEnum.enum.LIVENESS_PONG),
 });
 
+export const StartLiveSchema = z.object({
+  type: z.literal(ClientActionEnum.enum.START_LIVE),
+  playoutDelayMs: z
+    .number()
+    .min(LIVE_CONSTANTS.MIN_PLAYOUT_DELAY_MS)
+    .max(LIVE_CONSTANTS.MAX_PLAYOUT_DELAY_MS)
+    .default(LIVE_CONSTANTS.DEFAULT_PLAYOUT_DELAY_MS),
+});
+
+export const StopLiveSchema = z.object({
+  type: z.literal(ClientActionEnum.enum.STOP_LIVE),
+});
+
 export const WSRequestSchema = z.discriminatedUnion("type", [
   PlayActionSchema,
   PauseActionSchema,
@@ -190,6 +205,8 @@ export const WSRequestSchema = z.discriminatedUnion("type", [
   SetMetronomeSchema,
   SetLowPassFreqSchema,
   LivenessPongSchema,
+  StartLiveSchema,
+  StopLiveSchema,
 ]);
 export type WSRequestType = z.infer<typeof WSRequestSchema>;
 export type PlayActionType = z.infer<typeof PlayActionSchema>;

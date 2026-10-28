@@ -27,3 +27,22 @@ export const LOW_PASS_CONSTANTS = {
 export const CHAT_CONSTANTS = {
   MAX_MESSAGE_LENGTH: 20_000,
 } as const;
+
+/**
+ * Live broadcast: an admin shares their own device audio (tab / system / mic) with the room.
+ * Frames are binary WebSocket messages, Opus-encoded (WebCodecs), see ./liveFrame.ts
+ */
+export const LIVE_CONSTANTS = {
+  FRAME_TYPE_AUDIO: 1,
+  /** type(1) + channels(1) + seq(4) + captureServerTimeMs(8) */
+  HEADER_BYTES: 14,
+  SAMPLE_RATE: 48_000,
+  BITRATE: 64_000,
+  /** One Opus packet at 64 kbps / 20 ms is ~160 bytes; anything bigger is garbage or abuse. */
+  MAX_FRAME_BYTES: 4_000,
+  MIN_PLAYOUT_DELAY_MS: 500,
+  DEFAULT_PLAYOUT_DELAY_MS: 1_200,
+  MAX_PLAYOUT_DELAY_MS: 5_000,
+  /** Server drops frames above this rate from the broadcaster (50/s is normal at 20 ms). */
+  MAX_FRAMES_PER_SECOND: 120,
+} as const;

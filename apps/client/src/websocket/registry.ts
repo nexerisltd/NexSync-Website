@@ -1,7 +1,9 @@
 import { toast } from "sonner";
 import { getClientId } from "@/lib/clientId";
 import { describeImportReason } from "@/lib/importReason";
+import { applyLiveState } from "@/lib/live/liveController";
 import { useChatStore } from "@/store/chat";
+import { useLiveStore } from "@/store/live";
 import { useGlobalStore } from "@/store/global";
 import { useRoomTotals } from "@/store/roomTotals";
 import { getProbeStats, handleNTPResponse } from "@/utils/ntp";
@@ -36,6 +38,9 @@ const ROOM_EVENT_REGISTRY: {
   LOAD_AUDIO_SOURCE: (event) => {
     useGlobalStore.getState().handleLoadAudioSource(event);
   },
+  LIVE_STATE: (event) => {
+    applyLiveState(event);
+  },
 };
 
 const SCHEDULED_ACTION_REGISTRY: {
@@ -45,6 +50,8 @@ const SCHEDULED_ACTION_REGISTRY: {
   }) => void;
 } = {
   PLAY: ({ action, serverTimeToExecute }) => {
+    // Live broadcast replaces the queue: never start file playback on top of it
+    if (useLiveStore.getState().info) return;
     useGlobalStore.getState().schedulePlay({
       trackTimeSeconds: action.trackTimeSeconds,
       targetServerTime: serverTimeToExecute,

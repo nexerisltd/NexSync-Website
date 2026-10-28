@@ -45,6 +45,10 @@ export const LIMITS = {
   MAX_SPATIAL_CLIENTS: intFromEnv("MAX_SPATIAL_CLIENTS", 100),
   /** Largest websocket message accepted from a client (Bun's default is 16 MB). */
   MAX_WS_PAYLOAD_BYTES: intFromEnv("MAX_WS_PAYLOAD_BYTES", 256 * 1024),
+  /** How many rooms may run a live audio broadcast at once (each one costs listeners x 8 KB/s of bandwidth). */
+  MAX_LIVE_ROOMS: intFromEnv("MAX_LIVE_ROOMS", 5),
+  /** Live broadcasts are refused in rooms with more people than this (WebSocket relay is for small rooms). */
+  LIVE_MAX_LISTENERS_PER_ROOM: intFromEnv("LIVE_MAX_LISTENERS_PER_ROOM", 50),
 } as const;
 
 /** Delay before a CLIENT_CHANGE broadcast goes out: short for normal rooms, longer as a room grows. */

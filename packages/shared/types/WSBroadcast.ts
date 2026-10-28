@@ -68,6 +68,17 @@ const LoadAudioSourceSchema = z.object({
 });
 export type LoadAudioSourceType = z.infer<typeof LoadAudioSourceSchema>;
 
+// Live broadcast state (null-ish when inactive). Sent on change and to every client that joins.
+const LiveStateSchema = z.object({
+  type: z.literal("LIVE_STATE"),
+  active: z.boolean(),
+  broadcasterId: z.string().optional(),
+  broadcasterName: z.string().optional(),
+  playoutDelayMs: z.number().optional(),
+  error: z.string().optional(), // set only on the unicast reply to a refused START_LIVE
+});
+export type LiveStateType = z.infer<typeof LiveStateSchema>;
+
 const RoomEventSchema = z.object({
   type: z.literal(ServerActionEnum.enum.ROOM_EVENT),
   event: z.discriminatedUnion("type", [
@@ -76,6 +87,7 @@ const RoomEventSchema = z.object({
     SetPlaybackControlsSchema,
     ChatUpdateSchema,
     LoadAudioSourceSchema,
+    LiveStateSchema,
   ]),
 });
 

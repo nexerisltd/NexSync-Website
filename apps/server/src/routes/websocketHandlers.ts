@@ -5,7 +5,7 @@ import { sendBroadcast, sendToClient, sendUnicast } from "@/utils/responses";
 import type { BunServer, WSData } from "@/utils/websocket";
 import { dispatchMessage } from "@/websocket/dispatch";
 import type { WSBroadcastType } from "@beatsync/shared";
-import { epochNow, WSRequestSchema } from "@beatsync/shared";
+import { decodeLiveFrame, epochNow, WSRequestSchema } from "@beatsync/shared";
 import type { ServerWebSocket } from "bun";
 
 const createClientUpdate = (roomId: string, selfClientId?: string) => {
@@ -82,6 +82,10 @@ export const handleOpen = (ws: ServerWebSocket<WSData>, server: BunServer) => {
       },
     },
   });
+
+  if (room.getLiveState()) {
+    sendToClient({ ws, message: room.getLiveStateMessage() });
+  }
 
   sendUnicast({
     ws,
@@ -165,9 +169,28 @@ export const handleOpen = (ws: ServerWebSocket<WSData>, server: BunServer) => {
   }
 };
 
+/**
+ * Binary frames are live-broadcast audio. Relay them untouched (no re-encode, no JSON) to everyone else in the room,
+ * but only from the room's current broadcaster, within a frame-rate budget, and only if the header is well-formed.
+ */
+const handleLiveFrame = (ws: ServerWebSocket<WSData>, message: Buffer) => {
+  const room = globalManager.getRoom(ws.data.roomId);
+  if (!room || !room.isLiveBroadcaster(ws.data.clientId)) return;
+  room.markClientSeen(ws.data.clientId);
+  if (!room.allowLiveFrame()) return;
+  if (!decodeLiveFrame(message)) return;
+  // ws.publish skips the sender, which is exactly what we want
+  ws.publish(ws.data.roomId, message);
+};
+
 export const handleMessage = async (ws: ServerWebSocket<WSData>, message: string | Buffer, server: BunServer) => {
   const t1 = epochNow(); // Always capture immediately on receive
   const { roomId, username } = ws.data;
+
+  if (typeof message !== "string") {
+    handleLiveFrame(ws, message);
+    return;
+  }
 
   try {
     const parsedData: unknown = JSON.parse(message.toString());
@@ -238,6 +261,11 @@ export const handleClose = (ws: ServerWebSocket<WSData>, server: BunServer) => {
       if (room.hasActiveConnections() && room.getClients().some((c) => c.clientId === clientId)) {
         ws.unsubscribe(roomId);
         return;
+      }
+
+      // The broadcaster left (and did not reconnect): end the live broadcast for everyone
+      if (room.isLiveBroadcaster(clientId)) {
+        room.stopLive(server);
       }
 
       // Schedule cleanup for rooms with no active connections

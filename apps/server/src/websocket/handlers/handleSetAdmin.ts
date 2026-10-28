@@ -10,6 +10,11 @@ export const handleSetAdmin: HandlerFunction<ExtractWSRequestFrom["SET_ADMIN"]> 
     isAdmin: message.isAdmin,
   });
 
+  // Only admins may broadcast
+  if (!message.isAdmin && room.isLiveBroadcaster(message.clientId)) {
+    room.stopLive(server);
+  }
+
   sendBroadcast({
     server,
     roomId: ws.data.roomId,

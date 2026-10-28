@@ -66,6 +66,13 @@ export class GlobalManager {
   /**
    * Get the count of active rooms
    */
+  /** Rooms currently running a live audio broadcast. */
+  getLiveRoomCount(): number {
+    let total = 0;
+    for (const room of this.rooms.values()) if (room.getLiveState()) total += 1;
+    return total;
+  }
+
   /** Open websocket connections across every room. */
   getTotalConnections(): number {
     let total = 0;

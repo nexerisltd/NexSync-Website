@@ -4,6 +4,7 @@ import { useNtpHeartbeat } from "@/hooks/useNtpHeartbeat";
 import { useWebSocketReconnection } from "@/hooks/useWebSocketReconnection";
 import { IS_DEMO_MODE } from "@/lib/demo";
 import { getUserLocation } from "@/lib/ip";
+import { liveReceiver } from "@/lib/live/LiveReceiver";
 import { getWsUrl } from "@/lib/urls";
 import { useGlobalStore } from "@/store/global";
 import { useRoomStore } from "@/store/room";
@@ -72,6 +73,8 @@ export const WebSocketManager = ({ roomId, username }: WebSocketManagerProps) =>
     }
 
     const ws = new WebSocket(SOCKET_URL);
+    // Live broadcast audio arrives as binary frames
+    ws.binaryType = "arraybuffer";
 
     setSocket(ws);
 
@@ -122,6 +125,11 @@ export const WebSocketManager = ({ roomId, username }: WebSocketManagerProps) =>
     ws.onmessage = (msg) => {
       // Update last message received time for connection health
       useGlobalStore.setState({ lastMessageReceivedTime: Date.now() });
+
+      if (typeof msg.data !== "string") {
+        liveReceiver.push(msg.data as ArrayBuffer);
+        return;
+      }
 
       const response = WSResponseSchema.parse(JSON.parse(msg.data));
       dispatchWSResponse({ response, context });

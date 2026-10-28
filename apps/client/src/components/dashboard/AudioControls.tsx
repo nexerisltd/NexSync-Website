@@ -5,6 +5,7 @@ import { useCanMutate, useGlobalStore } from "@/store/global";
 import { Orbit, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { Button } from "../ui/button";
+import { LiveControls } from "./LiveControls";
 import { LowPassControl } from "./LowPassControl";
 
 export const AudioControls = () => {
@@ -61,6 +62,7 @@ export const AudioControls = () => {
         </motion.div>
         <LowPassControl />
       </div>
+      <LiveControls />
     </motion.div>
   );
 };

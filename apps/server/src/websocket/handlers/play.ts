@@ -6,6 +6,9 @@ import type { HandlerFunction } from "@/websocket/types";
 export const handlePlay: HandlerFunction<ExtractWSRequestFrom["PLAY"]> = ({ ws, message, server }) => {
   const { room } = requireCanMutate(ws);
 
+  // The room is in live-broadcast mode: queue playback stays paused until the broadcast ends
+  if (room.getLiveState()) return;
+
   if (IS_DEMO_MODE) {
     // Skip audio loading coordination — audio is pre-cached on clients.
     // Broadcast play immediately to avoid 3s timeout dead air on stage.

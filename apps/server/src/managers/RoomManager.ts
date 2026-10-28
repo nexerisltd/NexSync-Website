@@ -21,7 +21,14 @@ import type {
   RoomType,
   WSBroadcastType,
 } from "@beatsync/shared";
-import { ChatMessageSchema, ClientDataSchema, epochNow, LOW_PASS_CONSTANTS, NTP_CONSTANTS } from "@beatsync/shared";
+import {
+  ChatMessageSchema,
+  ClientDataSchema,
+  epochNow,
+  LIVE_CONSTANTS,
+  LOW_PASS_CONSTANTS,
+  NTP_CONSTANTS,
+} from "@beatsync/shared";
 import { AudioSourceSchema, GRID } from "@beatsync/shared/types/basic";
 import type { SendLocationSchema } from "@beatsync/shared/types/WSRequest";
 import type { ServerWebSocket } from "bun";
@@ -122,6 +129,15 @@ export class RoomManager {
   private globalVolume = 1.0;
   private lowPassFreq: number = LOW_PASS_CONSTANTS.MAX_FREQ; // Default bypassed (full spectrum)
   private isMetronomeEnabled = false;
+  // Live audio broadcast (admin shares their device audio). In-memory only, never persisted/backed up.
+  private liveState?: {
+    broadcasterId: string;
+    broadcasterName: string;
+    playoutDelayMs: number;
+    startedAt: number;
+    windowStart: number;
+    framesInWindow: number;
+  };
   // Map of trackId to job status
   private activeStreamJobs = new Map<string, { status: string }>();
   private chatManager: ChatManager;
@@ -824,6 +840,101 @@ export class RoomManager {
         },
       },
     });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Live broadcast
+  // ---------------------------------------------------------------------------
+
+  getLiveState() {
+    return this.liveState;
+  }
+
+  isLiveBroadcaster(clientId: string): boolean {
+    return this.liveState?.broadcasterId === clientId;
+  }
+
+  /** Message describing the current live state; sent on change and to every joining client. */
+  getLiveStateMessage(): WSBroadcastType {
+    const live = this.liveState;
+    return {
+      type: "ROOM_EVENT",
+      event: live
+        ? {
+            type: "LIVE_STATE",
+            active: true,
+            broadcasterId: live.broadcasterId,
+            broadcasterName: live.broadcasterName,
+            playoutDelayMs: live.playoutDelayMs,
+          }
+        : { type: "LIVE_STATE", active: false },
+    };
+  }
+
+  /** Returns an error string when the broadcast cannot start, otherwise null. */
+  startLive(params: { clientId: string; playoutDelayMs: number; server: BunServer; liveRoomCount: number }): string | null {
+    const { clientId, playoutDelayMs, server, liveRoomCount } = params;
+    if (this.liveState) return "A live broadcast is already running in this room";
+    if (liveRoomCount >= LIMITS.MAX_LIVE_ROOMS) return "The server is at its live-broadcast limit, try again later";
+    if (this.getConnectionCount() > LIMITS.LIVE_MAX_LISTENERS_PER_ROOM) {
+      return `Live broadcast supports up to ${LIMITS.LIVE_MAX_LISTENERS_PER_ROOM} listeners per room`;
+    }
+    const client = this.getClient(clientId);
+    if (!client) return "Client not found in room";
+
+    // Live replaces the queue: pause file playback for everyone first (and remember the position).
+    if (this.playbackState.type === "playing") {
+      const now = epochNow();
+      const position =
+        this.playbackState.trackPositionSeconds + Math.max(0, now - this.playbackState.serverTimeToExecute) / 1000;
+      const audioSource = this.playbackState.audioSource;
+      this.playbackState = {
+        type: "paused",
+        audioSource,
+        trackPositionSeconds: position,
+        serverTimeToExecute: now,
+      };
+      sendBroadcast({
+        server,
+        roomId: this.roomId,
+        message: {
+          type: "SCHEDULED_ACTION",
+          serverTimeToExecute: now,
+          scheduledAction: { type: "PAUSE", audioSource, trackTimeSeconds: position },
+        },
+      });
+    }
+
+    const now = Date.now();
+    this.liveState = {
+      broadcasterId: clientId,
+      broadcasterName: client.username,
+      playoutDelayMs,
+      startedAt: now,
+      windowStart: now,
+      framesInWindow: 0,
+    };
+    sendBroadcast({ server, roomId: this.roomId, message: this.getLiveStateMessage() });
+    return null;
+  }
+
+  stopLive(server: BunServer): void {
+    if (!this.liveState) return;
+    this.liveState = undefined;
+    sendBroadcast({ server, roomId: this.roomId, message: this.getLiveStateMessage() });
+  }
+
+  /** Per-second frame budget for the broadcaster; false = drop the frame. */
+  allowLiveFrame(): boolean {
+    const live = this.liveState;
+    if (!live) return false;
+    const now = Date.now();
+    if (now - live.windowStart >= 1000) {
+      live.windowStart = now;
+      live.framesInWindow = 0;
+    }
+    live.framesInWindow += 1;
+    return live.framesInWindow <= LIVE_CONSTANTS.MAX_FRAMES_PER_SECOND;
   }
 
   getIsMetronomeEnabled(): boolean {
