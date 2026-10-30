@@ -108,7 +108,9 @@ export const Queue = ({ className, ...rest }: React.ComponentProps<"div">) => {
             ) : canMutate ? (
               <>
                 <div className="text-sm text-neutral-300">No tracks yet</div>
-                <div className="max-w-xs text-xs text-neutral-500">Upload audio or import a YouTube playlist from the left.</div>
+                <div className="max-w-xs text-xs text-neutral-500">
+                  Upload audio or import a YouTube playlist from the left.
+                </div>
                 <LoadDefaultTracksButton />
               </>
             ) : (

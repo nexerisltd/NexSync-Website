@@ -52,7 +52,10 @@ export const LiveControls = () => {
             </div>
             {isBroadcasting && (
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-                <div className="h-full bg-red-500 transition-[width] duration-100" style={{ width: `${Math.round(level * 100)}%` }} />
+                <div
+                  className="h-full bg-red-500 transition-[width] duration-100"
+                  style={{ width: `${Math.round(level * 100)}%` }}
+                />
               </div>
             )}
             {isAdmin && (
@@ -81,7 +84,9 @@ export const LiveControls = () => {
                   onClick={() => setDelayMs(preset.ms)}
                   className={cn(
                     "flex-1 rounded-md px-2 py-1 text-[11px] transition-colors",
-                    delayMs === preset.ms ? "bg-primary-600/80 text-white" : "bg-white/8 text-neutral-300 hover:bg-white/15"
+                    delayMs === preset.ms
+                      ? "bg-primary-600/80 text-white"
+                      : "bg-white/8 text-neutral-300 hover:bg-white/15"
                   )}
                 >
                   {preset.label}

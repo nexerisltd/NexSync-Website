@@ -62,7 +62,11 @@ export class LiveReceiver {
 
     // Opus' timestamp field (microseconds) carries the capture time through the decoder untouched
     this.decoder.decode(
-      new EncodedAudioChunk({ type: "key", timestamp: Math.round(frame.captureServerTimeMs * 1000), data: frame.payload })
+      new EncodedAudioChunk({
+        type: "key",
+        timestamp: Math.round(frame.captureServerTimeMs * 1000),
+        data: frame.payload,
+      })
     );
   }
 

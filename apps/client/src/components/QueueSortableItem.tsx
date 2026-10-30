@@ -38,7 +38,8 @@ export const QueueSortableItem = ({
   const isError = sourceState.status === "error";
 
   // Only tracks whose audio is decoded know their length; the rest show a placeholder
-  const duration = !isLoading && sourceState.status === "loaded" ? getAudioDuration({ url: sourceState.source.url }) : 0;
+  const duration =
+    !isLoading && sourceState.status === "loaded" ? getAudioDuration({ url: sourceState.source.url }) : 0;
 
   const togglePlay = () => {
     if (!canMutate || isLoading || isError) return;

@@ -38,7 +38,13 @@ const CopyRoomLink = () => {
   };
 
   return (
-    <button type="button" onClick={() => void copy()} className="nx-icon-btn size-8" aria-label="Copy room link" title="Copy room link">
+    <button
+      type="button"
+      onClick={() => void copy()}
+      className="nx-icon-btn size-8"
+      aria-label="Copy room link"
+      title="Copy room link"
+    >
       {copied ? <Check className="size-4 text-green-400" /> : <Link2 className="size-4" />}
     </button>
   );

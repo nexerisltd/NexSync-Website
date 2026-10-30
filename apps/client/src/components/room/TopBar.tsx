@@ -10,7 +10,14 @@ import { FaDiscord, FaGithub } from "react-icons/fa";
 import { toast } from "sonner";
 import { InstallAppButton } from "../InstallAppButton";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 import { SyncProgress } from "../ui/SyncProgress";
 
 interface TopBarProps {
@@ -84,7 +91,10 @@ export const TopBar = ({ roomId }: TopBarProps) => {
         <div className="flex shrink-0 items-center gap-1.5">
           <div className="mr-2 hidden items-center gap-4 rounded-xl border border-white/9 bg-white/5 px-3.5 py-2 font-mono text-[11px] text-neutral-500 lg:flex">
             <span>
-              NTP <span className="text-neutral-300">{syncMeasurementCount}/{MAX_NTP_MEASUREMENTS}</span>
+              NTP{" "}
+              <span className="text-neutral-300">
+                {syncMeasurementCount}/{MAX_NTP_MEASUREMENTS}
+              </span>
             </span>
             <span>
               Offset <span className="text-neutral-300">{clockOffset.toFixed(1)}ms</span>
@@ -93,7 +103,10 @@ export const TopBar = ({ roomId }: TopBarProps) => {
               RTT <span className="text-neutral-300">{roundTripEstimate.toFixed(1)}ms</span>
             </span>
             <span>
-              OL <span className="text-neutral-300">{((audioContextManager.getContext().outputLatency ?? 0) * 1000).toFixed(0)}ms</span>
+              OL{" "}
+              <span className="text-neutral-300">
+                {((audioContextManager.getContext().outputLatency ?? 0) * 1000).toFixed(0)}ms
+              </span>
             </span>
           </div>
 
